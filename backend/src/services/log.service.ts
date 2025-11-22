@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { formattedLogInfo } from '@utils/formatters.js';
 import { LogData } from '@interfaces/log.interfaces.js';
 import { PrismaClient } from '@prisma/client';
+import logger from '@utils/logger.js';
 
 const prisma = new PrismaClient();
 
@@ -13,7 +14,7 @@ export class LogService {
             });
             return "Registro de actividad creado exitosamente";
         } catch (error) {
-            console.error('Error al crear el registro de actividad:', error);
+            logger.error('Error al crear el registro de actividad:', error);
             throw error;
         }
     }   

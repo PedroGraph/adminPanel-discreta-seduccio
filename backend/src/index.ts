@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import routes from './routes/main.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import logger from '@utils/logger.js';
+import { createServer } from 'http';
 
 dotenv.config();
 
@@ -16,9 +18,10 @@ app.use('/api', routes);
 
 app.use(errorHandler);
 
-const server = app.listen(port, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
-}); 
+export const server = createServer(app);
 
-export { server };
+server.listen(port, () => {
+  logger.info(`🚀 Servidor corriendo en http://localhost:${port}`);
+});
+
 export default app;

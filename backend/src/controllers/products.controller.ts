@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ProductService } from '@services/products.service.js';
+import logger from '@utils/logger.js';
 
 export class ProductController {
     private productService: ProductService;
@@ -13,7 +14,7 @@ export class ProductController {
             const products = await this.productService.getAllProducts();
             res.status(200).json(products);
         } catch (error) {
-            console.log(error);
+            logger.error(error);
             res.status(500).json({ error: 'Error al obtener los productos' });
         }
     }   
@@ -58,4 +59,4 @@ export class ProductController {
             res.status(500).json({ error: 'Error al eliminar el producto' });
         }
     }
-}   
+}

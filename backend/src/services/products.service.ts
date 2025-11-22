@@ -1,5 +1,7 @@
 import { CreateProductData } from '@interfaces/product.interface.js';
 import { PrismaClient, Product } from '@prisma/client';
+import logger from '@utils/logger.js';
+
 const prisma = new PrismaClient();
 
 export class ProductService {
@@ -20,7 +22,7 @@ export class ProductService {
 
       return products;
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
+      logger.error('Error al obtener los productos:', error);
       throw error;
     }
   }
@@ -59,7 +61,7 @@ export class ProductService {
       
       return newProduct;
     } catch (error) {
-      console.error('Error al crear el producto:', error);
+      logger.error('Error al crear el producto:', error);
       throw error;
     }
   }
@@ -121,7 +123,7 @@ export class ProductService {
       
       return updatedProduct;
     } catch (error) {
-      console.error('Error al actualizar el producto:', error);
+      logger.error('Error al actualizar el producto:', error);
       throw error;
     }
   }
@@ -147,7 +149,7 @@ export class ProductService {
       
       return "Producto eliminado exitosamente";
     } catch (error) {
-      console.error('Error al eliminar el producto:', error);
+      logger.error('Error al eliminar el producto:', error);
       throw error;
     }
   }
@@ -169,7 +171,7 @@ export class ProductService {
       
       return product;
     } catch (error) {
-      console.error(`Error al obtener el producto con ID ${id}:`, error);
+      logger.error(`Error al obtener el producto con ID ${id}:`, error);
       throw error;
     }
   }
