@@ -25,7 +25,7 @@ export class AuthService {
       role: user.role
     });
 
-    return { token, name: user.name, email: user.email, role: user.role };
+    return { token, id: user.id, name: user.name, email: user.email, role: user.role };
   }
 
   async register(data: { name: string; email: string; password: string; role?: string }) {
@@ -52,4 +52,4 @@ export class AuthService {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
-} 
+}

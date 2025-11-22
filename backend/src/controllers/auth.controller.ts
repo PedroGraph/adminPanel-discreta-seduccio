@@ -1,36 +1,59 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '@services/auth.service.js';
 import { LogService } from '@services/log.service.js';
 import logger from '@utils/logger.js';
+import { AppError } from '@utils/AppError.js';
+import { sendSuccess } from '@utils/response.utils.js';
+
+const authService = new AuthService();
+const logService = new LogService();
 
 export class AuthController {
-  private authService: AuthService;
-  private logService: LogService;
+  async login(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password } = req.body;
+      const result = await authService.login({ email, password });
+      
+      await logService.createLog(req, {
+        email,
+        action: 'login',
+        entityType: 'user',
+        entityId: result.id,
+        description: 'Usuario logueado exitosamente'
+      });
 
-  constructor() {
-    this.authService = new AuthService();
-    this.logService = new LogService();
+      sendSuccess(res, result, 'Login exitoso');
+    } catch (error) {
+      logger.error('Error en login:', error);
+      if (error instanceof Error) {
+        next(new AppError(error.message, 401));
+      } else {
+        next(error);
+      }
+    }
   }
 
-  login = async (req: Request, res: Response) => {
+  async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await this.authService.login(req.body);
-      await this.logService.createLog(req, {email: req.body.email, action: 'login', entityType: 'user', description: 'Usuario inició sesión'});
-      res.json(result);
-    } catch (error: any) {
-      logger.error(`Login error for ${req.body.email}:`, error);
-      res.status(400).json({ error: error.message });
-    }
-  };
+      const userData = req.body;
+      const result = await authService.register(userData);
 
-  register = async (req: Request, res: Response) => {
-    try {
-      const result = await this.authService.register(req.body);
-      await this.logService.createLog(req, {email: req.body.email, action: 'register', entityType: 'user', description: 'Usuario registró una cuenta'});
-      res.json(result);
-    } catch (error: any) {
-      logger.error(`Register error for ${req.body.email}:`, error);
-      res.status(400).json({ error: error.message });
+      await logService.createLog(req, {
+        email: userData.email,
+        action: 'register',
+        entityType: 'user',
+        entityId: result.id,
+        description: 'Nuevo usuario registrado'
+      });
+
+      sendSuccess(res, result, 'Usuario registrado exitosamente', 201);
+    } catch (error) {
+      logger.error('Error en registro:', error);
+      if (error instanceof Error) {
+        next(new AppError(error.message, 400));
+      } else {
+        next(error);
+      }
     }
-  };
+  }
 }

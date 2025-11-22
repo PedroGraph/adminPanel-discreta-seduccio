@@ -1,5 +1,5 @@
 import { CreateProductData } from '@interfaces/product.interface.js';
-import { PrismaClient, Product } from '@prisma/client';
+import { PrismaClient, Prisma, Product, Status } from '@prisma/client';
 import logger from '@utils/logger.js';
 
 const prisma = new PrismaClient();
@@ -30,14 +30,14 @@ export class ProductService {
   async createProduct(productData: Omit<CreateProductData, 'categoryId'> & { categoryId?: number }) {
     try {
 
-      const productInput: any = {
+      const productInput: Prisma.ProductCreateInput = {
         sku: productData.sku,
         name: productData.name,
         description: productData.description,
         price: productData.price,
         costPrice: productData.costPrice,
-        slug: productData.slug,
-        status: productData.status,
+        slug: productData.slug || '', 
+        status: (productData.status as Status) || 'active',
         ...(productData.attributes && { attributes: productData.attributes }),
         ...(productData.images && { images: productData.images }),
         ...(productData.createdById && { 
@@ -45,10 +45,23 @@ export class ProductService {
         })
       };
   
-      if (productData.categoryId) 
+      if (productData.categoryId) {
         productInput.category = { connect: { id: productData.categoryId } };
-      else if (productData.category) 
-        productInput.category = productData.category;
+      } else if (productData.category) {
+        if (productData.category.connect) {
+             productInput.category = { connect: productData.category.connect };
+        } else if (productData.category.create) {
+             const { parentId, ...categoryData } = productData.category.create;
+             productInput.category = { 
+               create: {
+                 ...categoryData,
+                 slug: categoryData.slug || '',
+                 status: categoryData.status as Status || 'active',
+                 ...(parentId && { parent: { connect: { id: parentId } } })
+               }
+             };
+        }
+      }
       
       const newProduct = await prisma.product.create({
         data: productInput,
@@ -69,20 +82,20 @@ export class ProductService {
   async updateProduct(id: number, productData: Partial<CreateProductData> & { categoryId?: number }) {
     try {
      
-      const updateInput: any = {
+      const updateInput: Prisma.ProductUpdateInput = {
         sku: productData.sku,
         name: productData.name,
         description: productData.description,
         price: productData.price,
         costPrice: productData.costPrice,
         slug: productData.slug,
-        status: productData.status,
+        status: productData.status as Status,
       };
   
       
       Object.keys(updateInput).forEach(key => {
-        if (updateInput[key] === undefined) {
-          delete updateInput[key];
+        if (updateInput[key as keyof Prisma.ProductUpdateInput] === undefined) {
+          delete updateInput[key as keyof Prisma.ProductUpdateInput];
         }
       });
   
@@ -108,7 +121,19 @@ export class ProductService {
       if (productData.categoryId) {
         updateInput.category = { connect: { id: productData.categoryId } };
       } else if (productData.category) {
-        updateInput.category = productData.category;
+         if (productData.category.connect) {
+             updateInput.category = { connect: productData.category.connect };
+        } else if (productData.category.create) {
+             const { parentId, ...categoryData } = productData.category.create;
+             updateInput.category = { 
+               create: {
+                 ...categoryData,
+                 slug: categoryData.slug || '',
+                 status: categoryData.status as Status || 'active',
+                 ...(parentId && { parent: { connect: { id: parentId } } })
+               }
+             };
+        }
       }
   
       const updatedProduct = await prisma.product.update({

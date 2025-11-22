@@ -1,62 +1,71 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { ProductService } from '@services/products.service.js';
 import logger from '@utils/logger.js';
+import { AppError } from '@utils/AppError.js';
+import { sendSuccess, sendCreated } from '@utils/response.utils.js';
+
+const productService = new ProductService();
 
 export class ProductController {
-    private productService: ProductService;
-
-    constructor() {
-        this.productService = new ProductService();
+  async getAllProducts(req: Request, res: Response, next: NextFunction) {
+    try {
+      const products = await productService.getAllProducts();
+      sendSuccess(res, products);
+    } catch (error) {
+      logger.error('Error obteniendo productos:', error);
+      next(error);
     }
+  }
 
-    getAllProducts = async (req: Request, res: Response) => {
-        try {
-            const products = await this.productService.getAllProducts();
-            res.status(200).json(products);
-        } catch (error) {
-            logger.error(error);
-            res.status(500).json({ error: 'Error al obtener los productos' });
-        }
-    }   
-
-    getProductById = async (req: Request, res: Response) => {
-        try {
-            const { id } = req.params;
-            const product = await this.productService.getProductById(Number(id));
-            res.status(200).json(product);
-        } catch (error) {
-            res.status(500).json({ error: 'Error al obtener el producto' });
-        }
-    }   
-
-    createProduct = async (req: Request, res: Response) => {
-        try {
-            const product = req.body;
-            const newProduct = await this.productService.createProduct(product);
-            res.status(201).json(newProduct);
-        } catch (error) {
-            res.status(500).json({ error: 'Error al crear el producto' });
-        }
+  async createProduct(req: Request, res: Response, next: NextFunction) {
+    try {
+      const product = await productService.createProduct(req.body);
+      sendCreated(res, product, 'Producto creado exitosamente');
+    } catch (error) {
+      logger.error('Error creando producto:', error);
+      next(error);
     }
+  }
 
-    updateProduct = async (req: Request, res: Response) => {
-        try {
-            const { id } = req.params;
-            const product = req.body;
-            const updatedProduct = await this.productService.updateProduct(Number(id), product);
-            res.status(200).json(updatedProduct);
-        } catch (error) {
-            res.status(500).json({ error: 'Error al actualizar el producto' });
-        }
+  async updateProduct(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw new AppError('ID de producto inválido', 400);
+      }
+      const product = await productService.updateProduct(id, req.body);
+      sendSuccess(res, product, 'Producto actualizado exitosamente');
+    } catch (error) {
+      logger.error('Error actualizando producto:', error);
+      next(error);
     }
+  }
 
-    deleteProduct = async (req: Request, res: Response) => {
-        try {
-            const { id } = req.params;
-            const deletedProduct = await this.productService.deleteProduct(Number(id));
-            res.status(200).json(deletedProduct);
-        } catch (error) {
-            res.status(500).json({ error: 'Error al eliminar el producto' });
-        }
+  async deleteProduct(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw new AppError('ID de producto inválido', 400);
+      }
+      await productService.deleteProduct(id);
+      sendSuccess(res, null, 'Producto eliminado exitosamente');
+    } catch (error) {
+      logger.error('Error eliminando producto:', error);
+      next(error);
     }
+  }
+
+  async getProductById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        throw new AppError('ID de producto inválido', 400);
+      }
+      const product = await productService.getProductById(id);
+      sendSuccess(res, product);
+    } catch (error) {
+      logger.error('Error obteniendo producto:', error);
+      next(error);
+    }
+  }
 }
