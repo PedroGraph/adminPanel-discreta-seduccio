@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { generateToken } from '../utils/jwt.js';
+import { generateToken } from '@utils/jwt.js';
 
 const prisma = new PrismaClient();
 

@@ -1,7 +1,8 @@
 import { Request } from 'express';
-import { formattedLogInfo } from '../utils/formatters.js';
-import { LogData } from '../interfaces/log.interfaces.js';
+import { formattedLogInfo } from '@utils/formatters.js';
+import { LogData } from '@interfaces/log.interfaces.js';
 import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 export class LogService {

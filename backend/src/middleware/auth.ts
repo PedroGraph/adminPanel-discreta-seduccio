@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthMiddleware, AuthRequest } from '../types/middleware.js';
+import { AuthMiddleware, AuthRequest } from '@appTypes/middleware.js';
 
 export const auth: AuthMiddleware = async (
   req: AuthRequest,

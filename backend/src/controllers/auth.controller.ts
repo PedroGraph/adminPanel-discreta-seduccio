@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service.js';
-import { LogService } from '../services/log.service.js';
-export class AuthController {
+import { AuthService } from '@services/auth.service.js';
+import { LogService } from '@services/log.service.js';
 
-private authService: AuthService;
-private logService: LogService;
+export class AuthController {
+  private authService: AuthService;
+  private logService: LogService;
 
   constructor() {
     this.authService = new AuthService();
@@ -30,4 +30,4 @@ private logService: LogService;
       res.status(400).json({ error: error.message });
     }
   };
-} 
+}

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import  app, { server } from '../index.js';
 import { PrismaClient } from '@prisma/client';
-import { generateToken } from '../utils/jwt.js';
+import { generateToken } from '@utils/jwt.js';
 
 const prisma = new PrismaClient();
 

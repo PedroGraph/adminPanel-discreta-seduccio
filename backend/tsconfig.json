@@ -11,9 +11,44 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@controllers/*": [
+        "src/controllers/*"
+      ],
+      "@interfaces/*": [
+        "src/interfaces/*"
+      ],
+      "@middleware/*": [
+        "src/middleware/*"
+      ],
+      "@routes/*": [
+        "src/routes/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@validations/*": [
+        "src/validations/*"
+      ],
+      "@appTypes/*": [
+        "src/types/*"
+      ]
     }
   },
-  "include": ["src/**/*", "prisma/**/*"],
-  "exclude": ["node_modules", "dist"]
-} 
+  "include": [
+    "src/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
