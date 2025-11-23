@@ -19,6 +19,11 @@ export class AuthService {
       throw new Error('Contraseña incorrecta');
     }
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() }
+    });
+
     const token = generateToken({
       id: user.id,
       email: user.email,
