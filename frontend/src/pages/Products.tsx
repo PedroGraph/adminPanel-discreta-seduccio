@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { ProductsProvider, useProducts } from "@/components/products/ProductsProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
   Eye,
   DollarSign,
   AlertTriangle,
-  Loader2
 } from "lucide-react";
 import { AddProductModal } from "@/components/AddProductModal";
 import { EditProductModal } from "@/components/EditProductModal";
@@ -62,9 +61,9 @@ const ProductsContent = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
+      <div className="flex items-center justify-center h-screen bg-gray-800">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-muted-foreground">Cargando productos...</p>
         </div>
       </div>

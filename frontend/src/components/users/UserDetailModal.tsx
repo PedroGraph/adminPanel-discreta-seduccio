@@ -41,8 +41,8 @@ export const UserDetailModal = () => {
               <Badge
                 variant="outline"
                 className={
-                  selectedUser.role === "Admin" ? "border-red-600 text-red-400 bg-red-900/20" :
-                    selectedUser.role === "Editor" ? "border-blue-600 text-blue-400 bg-blue-900/20" : "border-green-600 text-green-400 bg-green-900/20"
+                  selectedUser.role === "admin" ? "border-red-600 text-red-400 bg-red-900/20" :
+                    selectedUser.role === "manager" ? "border-blue-600 text-blue-400 bg-blue-900/20" : "border-green-600 text-green-400 bg-green-900/20"
                 }
               >
                 {selectedUser.role}
@@ -53,7 +53,7 @@ export const UserDetailModal = () => {
               <span className="text-purple-300">{(t("user_details") as any).status}</span>
               <Badge
                 variant="outline"
-                className={selectedUser.status === "Activo" ? "border-green-600 text-green-400 bg-green-900/20" : "border-red-600 text-red-400 bg-red-900/20"}
+                className={selectedUser.status === "active" ? "border-green-600 text-green-400 bg-green-900/20" : "border-red-600 text-red-400 bg-red-900/20"}
               >
                 {selectedUser.status}
               </Badge>
@@ -64,7 +64,7 @@ export const UserDetailModal = () => {
                 <Calendar className="h-4 w-4" />
                 {(t("user_details") as any).last_login}
               </span>
-              <span className="text-purple-100">{formatReadableDate(selectedUser.last_login)}</span>
+              <span className="text-purple-100">{formatReadableDate(selectedUser.lastLogin)}</span>
             </div>
 
             <div className="flex items-center justify-between">

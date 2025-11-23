@@ -85,8 +85,8 @@ export const UsersTable = () => {
               <Badge
                 variant="outline"
                 className={
-                  user.role === "Admin" ? "border-red-600 text-red-400 bg-red-900/20" :
-                    user.role === "Editor" ? "border-blue-600 text-blue-400 bg-blue-900/20" : "border-green-600 text-green-400 bg-green-900/20"
+                  user.role === "admin" ? "border-red-600 text-red-400 bg-red-900/20" :
+                    user.role === "manager" ? "border-blue-600 text-blue-400 bg-blue-900/20" : "border-green-600 text-green-400 bg-green-900/20"
                 }
               >
                 {user.role}
@@ -95,12 +95,12 @@ export const UsersTable = () => {
             <TableCell>
               <Badge
                 variant="outline"
-                className={user.status === "Activo" ? "border-green-600 text-green-400 bg-green-900/20" : "border-red-600 text-red-400 bg-red-900/20"}
+                className={user.status === "active" ? "border-green-600 text-green-400 bg-green-900/20" : "border-red-600 text-red-400 bg-red-900/20"}
               >
                 {user.status}
               </Badge>
             </TableCell>
-            <TableCell className="text-purple-100">{formatReadableDate(user.last_login)}</TableCell>
+            <TableCell className="text-purple-100">{formatReadableDate(user.lastLogin)}</TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-2">
                 <Button
