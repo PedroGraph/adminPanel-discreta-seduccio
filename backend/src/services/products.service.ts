@@ -16,8 +16,7 @@ export class ProductService {
         },
         orderBy: {
           createdAt: 'desc'
-        },
-        take: 10
+        }
       });
 
       return products;
