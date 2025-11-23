@@ -8,7 +8,7 @@ export const auth: AuthMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
       res.status(401).json({ message: 'No token, authorization denied' });
@@ -17,14 +17,10 @@ export const auth: AuthMiddleware = async (
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     req.user = decoded as jwt.JwtPayload;
-
-    if(req.user.role !== 'admin') {
-      res.status(401).json({ message: 'Unauthorized' });
-      return;
-    }
+ 
     
     next();
   } catch (error) {
     res.status(401).json({ message: 'Token is not valid' });
   }
-}; 
+};
