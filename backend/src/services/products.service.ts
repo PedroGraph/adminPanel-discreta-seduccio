@@ -12,7 +12,12 @@ export class ProductService {
         include: {
           attributes: true,
           category: true,
-          images: true
+          images: true,
+          inventory: {
+            select: {
+              availableQuantity: true
+            }
+          }
         },
         orderBy: {
           createdAt: 'desc'
@@ -67,7 +72,12 @@ export class ProductService {
         include: {
           attributes: true,
           category: true,
-          images: true
+          images: true,
+          inventory: {
+            select: {
+              availableQuantity: true
+            }
+          }
         }
       });
       
@@ -141,7 +151,12 @@ export class ProductService {
         include: {
           attributes: true,
           category: true,
-          images: true
+          images: true,
+          inventory: {
+            select: {
+              availableQuantity: true
+            }
+          }
         }
       });
       
@@ -185,7 +200,12 @@ export class ProductService {
         include: {
           attributes: true,
           category: true,
-          images: true
+          images: true,
+          inventory: {
+            select: {
+              availableQuantity: true
+            }
+          }
         }
       });
       
