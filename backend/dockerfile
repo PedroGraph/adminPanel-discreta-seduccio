@@ -1,0 +1,24 @@
+# ✅ Cambiamos Alpine por Debian (sin musl)
+FROM node:20-bookworm-slim
+
+# Opcional pero recomendado: instalar openssl
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 1. Dependencias
+COPY package*.json ./
+RUN npm install
+
+# 2. Prisma Client dentro de la imagen
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# 3. Código del backend
+COPY . .
+
+# 4. Puerto del backend (ajústalo si usas otro)
+EXPOSE 3000
+
+# 5. Comando de arranque
+CMD ["npm", "run", "dev"]
