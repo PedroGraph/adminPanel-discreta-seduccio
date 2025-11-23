@@ -1,0 +1,109 @@
+import { useMemo, useState, useEffect } from "react";
+import { useActivities } from "@/components/activity/ActivityProvider";
+import { useUsers } from "@/components/users/UsersProvider";
+import { format, subDays, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { StatsCards } from "@/components/dashboard/StatsCards";
+import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
+import { UserGrowthAndActivity } from "@/components/dashboard/UserGrowthAndActivity";
+import { InfoGrid } from "@/components/dashboard/InfoGrid";
+import { ProductInfo } from "@/components/dashboard/ProductInfo";
+import { RecentOrders } from "@/components/dashboard/RecentOrders";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { DashboardWidgetsToggles } from "@/components/dashboard/DashboardWidgetsToggles";
+import { EmailMarketingWidget } from "@/components/dashboard/EmailMarketingWidget";
+import { useI18n } from "@/hooks/use-i18n";
+
+const DEFAULT_WIDGETS_STATE = {
+  stats: true,
+  charts: true,
+  userGrowth: true,
+  products: true,
+  orders: true,
+  email: true,
+};
+
+export const Dashboard = () => {
+  const { activities, isLoading: isLoadingActivities } = useActivities();
+  const { users } = useUsers();
+  const t = useI18n();
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const [widgetsVisibility, setWidgetsVisibility] = useState(DEFAULT_WIDGETS_STATE);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/dashboard/stats', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDashboardStats(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard stats:", error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const recentActivities = activities.slice(0, 5);
+
+  const userGrowthData = useMemo(() => {
+    if (!users || users.length === 0) return [];
+    const last7Days = Array.from({ length: 7 }, (_, i) => subDays(new Date(), i)).reverse();
+    const dailyCounts = last7Days.map(day => {
+      const formattedDayStr = format(day, 'yyyy-MM-dd');
+      const count = users.filter(user => format(parseISO(user.createdAt), 'yyyy-MM-dd') === formattedDayStr).length;
+      return {
+        date: format(day, 'dd MMM', { locale: es }),
+        usuarios: count,
+      };
+    });
+    return dailyCounts;
+  }, [users]);
+
+  if (loadingStats) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-transparent">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-purple-300">Cargando dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-3xl font-bold text-purple-200">{t("dashboard_title") as string}</h1>
+        <p className="text-purple-400">{t("dashboard_subtitle") as string}</p>
+      </div>
+
+      <QuickActions />
+
+      <div>
+        <DashboardWidgetsToggles
+          visibility={widgetsVisibility}
+          setVisibility={setWidgetsVisibility}
+        />
+      </div>
+
+      {widgetsVisibility.stats && <StatsCards stats={dashboardStats?.stats_cards} />}
+      {widgetsVisibility.charts && <DashboardCharts salesData={dashboardStats?.graphs || []} />}
+
+      {widgetsVisibility.products && <ProductInfo products={dashboardStats?.products} />}
+      {widgetsVisibility.email && (
+        <div>
+          <EmailMarketingWidget />
+        </div>
+      )}
+    </div>
+  );
+};
