@@ -1,67 +1,11 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import * as ProductsService from "@/services/products.service";
 
-type Product = {
-  id: number;
-  sku: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  price: number;
-  costPrice: number | null;
-  status: 'active' | 'inactive' | 'draft';
-  categoryId: number | null;
-  createdById: number | null;
-  createdAt: string;
-  updatedAt: string;
-  // Optional properties that may come from backend joins or frontend
-  category?: { id: number; name: string; slug: string; description: string | null; status: string; parentId: number | null; createdAt: string; updatedAt: string } | null;
-  stock?: number;
-  image?: string;
-};
-
-type NewProductPayload = {
-  sku: string;
-  name: string;
-  slug: string;
-  description?: string;
-  price: number;
-  costPrice?: number;
-  status: 'active' | 'inactive' | 'draft';
-  categoryId?: number;
-  category?: {
-    name: string;
-    slug: string;
-    description?: string;
-    status?: 'active' | 'inactive' | 'draft';
-  };
-  attributes?: {
-    create: Array<{
-      attributeName: string;
-      attributeValue: string;
-    }>;
-  };
-  images?: {
-    create: Array<{
-      imageUrl: string;
-      isPrimary: boolean;
-      sortOrder?: number;
-    }>;
-  };
-};
-
-type ProductStats = {
-  totalProducts: number;
-  activeProducts: number;
-  totalInventoryValue: number;
-  lowStockProducts: number;
-};
-
-type Pagination = {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-};
+// Re-export types from service for convenience
+export type Product = ProductsService.Product;
+export type NewProductPayload = ProductsService.NewProductPayload;
+export type ProductStats = ProductsService.ProductStats;
+export type Pagination = ProductsService.Pagination;
 
 interface ProductsContextType {
   products: Product[];
@@ -85,8 +29,6 @@ interface ProductsContextType {
 
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
-const API_URL = 'http://localhost:3000/api';
-
 export const ProductsProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [stats, setStats] = useState<ProductStats | null>(null);
@@ -101,13 +43,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${API_URL}/products?page=1&limit=1`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data.data.stats || null);
-        }
+        const data = await ProductsService.getAllProducts({ page: 1, limit: 1 });
+        setStats(data.stats || null);
       } catch (error) {
         console.error("Error fetching stats:", error);
       }
@@ -120,33 +57,25 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const queryParams = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: '20',
-          ...(searchTerm && { search: searchTerm }),
-          ...(statusFilter !== 'all' && { status: statusFilter }),
-        });
+        const params: any = {
+          page: currentPage,
+          limit: 20,
+        };
+
+        if (searchTerm) params.search = searchTerm;
+        if (statusFilter !== 'all') params.status = statusFilter;
 
         if (categoryFilter !== 'all') {
           if (!isNaN(Number(categoryFilter))) {
-            queryParams.append('categoryId', categoryFilter);
+            params.categoryId = Number(categoryFilter);
           } else {
-            queryParams.append('categoryName', categoryFilter);
+            params.categoryName = categoryFilter;
           }
         }
 
-        const response = await fetch(`${API_URL}/products?${queryParams.toString()}`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setProducts(data.data.products || []);
-          setPagination(data.data.pagination || null);
-        } else {
-          console.error("Error fetching products:", response.statusText);
-          setProducts([]);
-          setPagination(null);
-        }
+        const data = await ProductsService.getAllProducts(params);
+        setProducts(data.products || []);
+        setPagination(data.pagination || null);
       } catch (error) {
         console.error("Error fetching products:", error);
         setProducts([]);
@@ -169,22 +98,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
 
   const addProduct = async (productData: NewProductPayload) => {
     try {
-      const response = await fetch(`${API_URL}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(productData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "No se pudo crear el producto.");
-      }
-
-      const result = await response.json();
-      setProducts(prev => [...prev, result.data]);
+      const newProduct = await ProductsService.createProduct(productData);
+      setProducts(prev => [...prev, newProduct]);
     } catch (error) {
       console.error("Error adding product:", error);
       throw error;
@@ -193,22 +108,8 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
 
   const updateProduct = async (id: number, updates: Partial<NewProductPayload>) => {
     try {
-      const response = await fetch(`${API_URL}/products/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "No se pudo actualizar el producto.");
-      }
-
-      const result = await response.json();
-      setProducts(prev => prev.map(p => p.id === id ? result.data : p));
+      const updatedProduct = await ProductsService.updateProduct(id, updates);
+      setProducts(prev => prev.map(p => p.id === id ? updatedProduct : p));
     } catch (error) {
       console.error("Error updating product:", error);
       throw error;
@@ -217,15 +118,7 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteProduct = async (id: number) => {
     try {
-      const response = await fetch(`${API_URL}/products/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error("No se pudo eliminar el producto.");
-      }
-
+      await ProductsService.deleteProduct(id);
       setProducts(prev => prev.filter(p => p.id !== id));
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -235,18 +128,12 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
 
   const getProductBySlug = async (slug: string): Promise<Product | null> => {
     try {
+      // Check local state first
       const product = products.find(p => p.slug === slug);
       if (product) return product;
 
-      const response = await fetch(`${API_URL}/products?slug=${slug}`, {
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.data.find((p: Product) => p.slug === slug) || null;
-      }
-      return null;
+      // Fetch from API if not found locally
+      return await ProductsService.getProductBySlug(slug);
     } catch (error) {
       console.error("Error fetching product by slug:", error);
       return null;

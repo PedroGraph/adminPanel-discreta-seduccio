@@ -13,6 +13,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardWidgetsToggles } from "@/components/dashboard/DashboardWidgetsToggles";
 import { EmailMarketingWidget } from "@/components/dashboard/EmailMarketingWidget";
 import { useI18n } from "@/hooks/use-i18n";
+import * as DashboardService from "@/services/dashboard.service";
 
 const DEFAULT_WIDGETS_STATE = {
   stats: true,
@@ -27,25 +28,20 @@ export const Dashboard = () => {
   const { activities, isLoading: isLoadingActivities } = useActivities();
   const { users } = useUsers();
   const t = useI18n();
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
-  const [loadingStats, setLoadingStats] = useState(true);
+  const [stats, setStats] = useState<DashboardService.DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [widgetsVisibility, setWidgetsVisibility] = useState(DEFAULT_WIDGETS_STATE);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/dashboard/stats', {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setDashboardStats(data.data);
-        }
+        const data = await DashboardService.getDashboardStats();
+        setStats(data);
       } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
+        console.error('Error fetching dashboard stats:', error);
       } finally {
-        setLoadingStats(false);
+        setLoading(false);
       }
     };
 
@@ -68,7 +64,7 @@ export const Dashboard = () => {
     return dailyCounts;
   }, [users]);
 
-  if (loadingStats) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-transparent">
         <div className="text-center">
@@ -95,10 +91,10 @@ export const Dashboard = () => {
         />
       </div>
 
-      {widgetsVisibility.stats && <StatsCards stats={dashboardStats?.stats_cards} />}
-      {widgetsVisibility.charts && <DashboardCharts salesData={dashboardStats?.graphs || []} />}
+      {widgetsVisibility.stats && <StatsCards stats={stats?.stats_cards} />}
+      {widgetsVisibility.charts && <DashboardCharts salesData={stats?.graphs || []} />}
 
-      {widgetsVisibility.products && <ProductInfo products={dashboardStats?.products} />}
+      {widgetsVisibility.products && <ProductInfo products={stats?.products} />}
       {widgetsVisibility.email && (
         <div>
           <EmailMarketingWidget />
