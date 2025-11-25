@@ -18,8 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, X, Star } from "lucide-react";
+import { Upload, X, Star, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useProducts } from "./products/ProductsProvider";
+import { toast } from "sonner";
 
 interface ProductImage {
   id: string;
@@ -48,6 +50,7 @@ interface EditProductModalProps {
 export const EditProductModal = ({ open, onOpenChange, product }: EditProductModalProps) => {
   const [images, setImages] = useState<ProductImage[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -139,10 +142,93 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
     );
   };
 
-  const handleSubmit = () => {
-    console.log("Datos del producto editado:", formData);
-    console.log("Imágenes:", images);
-    onOpenChange(false);
+  const { updateProduct } = useProducts();
+
+  const handleSubmit = async () => {
+    if (!product) return;
+
+    try {
+      const statusMap: Record<string, string> = {
+        'Activo': 'active',
+        'Inactivo': 'inactive',
+        'Agotado': 'inactive',
+      };
+
+      // Prepare image URLs array
+      let uploadedImageUrls: Array<{ imageUrl: string; isPrimary: boolean; sortOrder: number }> = [];
+
+      // First, add all existing images (those without file property)
+      const existingImages = images
+        .filter(img => !img.file)
+        .map((img) => ({
+          imageUrl: img.url,
+          isPrimary: img.isMain,
+          sortOrder: images.indexOf(img)
+        }));
+
+      // Upload new images to Cloudinary (only those with file property)
+      const newImages = images.filter(img => img.file);
+
+      if (newImages.length > 0) {
+        toast.info('Subiendo nuevas imágenes...');
+
+        const { uploadMultipleImages } = await import('@/services/upload.service');
+        const files = newImages.map(img => img.file).filter((f): f is File => f !== undefined);
+
+        const uploadedImages = await uploadMultipleImages(files);
+
+        // Map uploaded images with their isPrimary status
+        const newUploadedImages = uploadedImages.map((img, index) => {
+          const originalImage = newImages[index];
+          return {
+            imageUrl: img.url,
+            isPrimary: originalImage.isMain,
+            sortOrder: images.indexOf(originalImage)
+          };
+        });
+
+        uploadedImageUrls = [...existingImages, ...newUploadedImages];
+      } else {
+        // No new images, just use existing ones
+        uploadedImageUrls = existingImages;
+      }
+
+      // Sort by sortOrder
+      uploadedImageUrls.sort((a, b) => a.sortOrder - b.sortOrder);
+
+      const updates: any = {
+        name: formData.name,
+        slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+        price: parseFloat(formData.price) || 0,
+        costPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        stock: parseInt(formData.stock) || 0,
+        description: formData.description || undefined,
+        sku: formData.sku || undefined,
+        status: statusMap[formData.status] || 'active',
+      };
+
+      if (formData.category && formData.category !== product.category) {
+        updates.category = {
+          name: formData.category,
+          slug: formData.category.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+          status: 'active'
+        };
+      }
+
+      // Always include images if there are any
+      if (uploadedImageUrls.length > 0) {
+        updates.images = {
+          create: uploadedImageUrls
+        };
+      }
+
+      await updateProduct(product.id, updates);
+      toast.success('Producto actualizado exitosamente');
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to update product:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update product. Contact support.");
+    }
   };
 
   const handleClose = () => {
@@ -288,14 +374,13 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
           {/* Sección de imágenes */}
           <div className="space-y-4">
             <Label className="text-purple-200">Imágenes del Producto</Label>
-            
+
             {/* Zona de drag and drop */}
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                isDragOver
-                  ? "border-purple-400 bg-purple-900/20"
-                  : "border-purple-600 bg-gray-800"
-              }`}
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver
+                ? "border-purple-400 bg-purple-900/20"
+                : "border-purple-600 bg-gray-800"
+                }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -338,7 +423,7 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
                         alt="Vista previa"
                         className="w-full h-24 object-cover rounded"
                       />
-                      
+
                       {/* Badge de imagen principal */}
                       {image.isMain && (
                         <Badge className="absolute top-1 left-1 bg-purple-700 text-purple-100 text-xs">
@@ -377,9 +462,16 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
           </Button>
           <Button
             onClick={handleSubmit}
-            className="bg-purple-700 hover:bg-purple-600 text-purple-100"
+            disabled={isSubmitting}
+            className="bg-purple-700 hover:bg-purple-600 text-purple-100 disabled:opacity-50"
           >
-            Guardar Cambios
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              </>
+            ) : (
+              'Guardar Cambios'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

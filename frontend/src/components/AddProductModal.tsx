@@ -18,10 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, X, Star } from "lucide-react";
+import { Upload, X, Star, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useProducts } from "./products/ProductsProvider";
-import { TablesInsert } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 interface ProductImage {
   id: string;
@@ -39,6 +39,7 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
   const { addProduct } = useProducts();
   const [images, setImages] = useState<ProductImage[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -107,34 +108,130 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
   };
 
   const handleSubmit = async () => {
-    const newProduct: TablesInsert<'products'> = {
-      name: formData.name,
-      slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
-      category: formData.category || null,
-      price: parseFloat(formData.price) || 0,
-      original_price: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
-      stock: parseInt(formData.stock) || 0,
-      description: formData.description || null,
-      sku: formData.sku || null,
-      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : null,
-      // La subida de imágenes a Supabase Storage se implementará en un paso posterior.
-    };
+    try {
+      setIsSubmitting(true);
+      // Validación de campos obligatorios
+      if (!formData.name.trim()) {
+        toast.error('El nombre del producto es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
 
-    await addProduct(newProduct);
-    
-    onOpenChange(false);
-    // Reset form
-    setFormData({
-      name: "",
-      category: "",
-      price: "",
-      originalPrice: "",
-      stock: "",
-      description: "",
-      sku: "",
-      tags: "",
-    });
-    setImages([]);
+      if (!formData.category) {
+        toast.error('La categoría es obligatoria');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.price || parseFloat(formData.price) <= 0) {
+        toast.error('El precio debe ser mayor a 0');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.originalPrice || parseFloat(formData.originalPrice) <= 0) {
+        toast.error('El precio original es obligatorio y debe ser mayor a 0');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.stock || parseInt(formData.stock) < 0) {
+        toast.error('El stock es obligatorio y debe ser mayor o igual a 0');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.sku.trim()) {
+        toast.error('El SKU es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (images.length === 0) {
+        toast.error('Debes agregar al menos una imagen del producto');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Generate a slug from the name
+      const slug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
+      // Upload images to Cloudinary first
+      let uploadedImageUrls: Array<{ imageUrl: string; isPrimary: boolean; sortOrder: number }> = [];
+
+      if (images.length > 0) {
+        toast.info('Subiendo imágenes...');
+
+        const { uploadMultipleImages } = await import('@/services/upload.service');
+        const files = images.map(img => img.file).filter((f): f is File => f !== undefined);
+
+        const uploadedImages = await uploadMultipleImages(files);
+
+        uploadedImageUrls = uploadedImages.map((img, index) => ({
+          imageUrl: img.url,
+          isPrimary: images[index].isMain,
+          sortOrder: index
+        }));
+      }
+
+      const newProduct = {
+        name: formData.name,
+        slug,
+        price: parseFloat(formData.price) || 0,
+        costPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        stock: parseInt(formData.stock) || 0,
+        description: formData.description || undefined,
+        sku: formData.sku || `SKU-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        status: 'active' as const,
+
+        // Handle Category
+        ...(formData.category && {
+          category: {
+            name: formData.category,
+            slug: formData.category.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+            status: 'active' as const
+          }
+        }),
+
+        // Handle Images with real Cloudinary URLs
+        ...(uploadedImageUrls.length > 0 && {
+          images: {
+            create: uploadedImageUrls
+          }
+        }),
+
+        // Handle Tags as Attributes
+        ...(formData.tags && {
+          attributes: {
+            create: formData.tags.split(',').map(tag => ({
+              attributeName: 'tag',
+              attributeValue: tag.trim()
+            }))
+          }
+        })
+      };
+
+      await addProduct(newProduct);
+
+      onOpenChange(false);
+      // Reset form
+      setFormData({
+        name: "",
+        category: "",
+        price: "",
+        originalPrice: "",
+        stock: "",
+        description: "",
+        sku: "",
+        tags: "",
+      });
+      setImages([]);
+    } catch (error) {
+      console.error("Failed to add product:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to add product. Contact support.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -249,14 +346,13 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
           {/* Sección de imágenes */}
           <div className="space-y-4">
             <Label className="text-purple-200">Imágenes del Producto</Label>
-            
+
             {/* Zona de drag and drop */}
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                isDragOver
-                  ? "border-purple-400 bg-purple-900/20"
-                  : "border-purple-600 bg-gray-800"
-              }`}
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver
+                ? "border-purple-400 bg-purple-900/20"
+                : "border-purple-600 bg-gray-800"
+                }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -299,7 +395,7 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
                         alt="Vista previa"
                         className="w-full h-24 object-cover rounded"
                       />
-                      
+
                       {/* Badge de imagen principal */}
                       {image.isMain && (
                         <Badge className="absolute top-1 left-1 bg-purple-700 text-purple-100 text-xs">

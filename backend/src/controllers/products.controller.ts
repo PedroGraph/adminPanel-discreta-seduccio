@@ -13,17 +13,24 @@ export class ProductController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
+      const search = req.query.search as string;
+      const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+      const categoryName = req.query.categoryName as string;
+      const status = req.query.status as string;
       
-      const products = await productService.getAllProducts();
+      const { products, total } = await productService.getAllProducts({
+        page,
+        limit,
+        search,
+        categoryId,
+        categoryName,
+        status
+      });
+
       const stats = await productStatsService.getProductStats();
       
-      // Calculate pagination manually since service doesn't support it yet
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedProducts = products.slice(startIndex, endIndex);
-      
       // Transform products to include primary image and total stock
-      const productsWithExtras = paginatedProducts.map((product: any) => ({
+      const productsWithExtras = products.map((product: any) => ({
         ...product,
         image: product.images?.find((img: any) => img.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl || null,
         stock: product.inventory?.reduce((sum: number, inv: any) => sum + inv.availableQuantity, 0) || 0
@@ -35,8 +42,8 @@ export class ProductController {
         pagination: {
           page,
           limit,
-          total: products.length,
-          totalPages: Math.ceil(products.length / limit)
+          total,
+          totalPages: Math.ceil(total / limit)
         }
       });
     } catch (error) {
@@ -48,7 +55,15 @@ export class ProductController {
   async createProduct(req: Request, res: Response, next: NextFunction) {
     try {
       const product = await productService.createProduct(req.body);
-      sendCreated(res, product, 'Producto creado exitosamente');
+      
+      // Transform product to include primary image and stock (same as getAllProducts)
+      const productWithExtras = {
+        ...product,
+        image: product.images?.find((img: any) => img.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl || null,
+        stock: product.inventory?.reduce((sum: number, inv: any) => sum + inv.availableQuantity, 0) || 0
+      };
+      
+      sendCreated(res, productWithExtras, 'Producto creado exitosamente');
     } catch (error) {
       logger.error('Error creando producto:', error);
       next(error);
@@ -62,7 +77,15 @@ export class ProductController {
         throw new AppError('ID de producto inválido', 400);
       }
       const product = await productService.updateProduct(id, req.body);
-      sendSuccess(res, product, 'Producto actualizado exitosamente');
+      
+      // Transform product to include primary image and stock (same as getAllProducts)
+      const productWithExtras = {
+        ...product,
+        image: product.images?.find((img: any) => img.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl || null,
+        stock: product.inventory?.reduce((sum: number, inv: any) => sum + inv.availableQuantity, 0) || 0
+      };
+      
+      sendSuccess(res, productWithExtras, 'Producto actualizado exitosamente');
     } catch (error) {
       logger.error('Error actualizando producto:', error);
       next(error);

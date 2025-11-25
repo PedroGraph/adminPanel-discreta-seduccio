@@ -28,6 +28,25 @@ type NewProductPayload = {
   costPrice?: number;
   status: 'active' | 'inactive' | 'draft';
   categoryId?: number;
+  category?: {
+    name: string;
+    slug: string;
+    description?: string;
+    status?: 'active' | 'inactive' | 'draft';
+  };
+  attributes?: {
+    create: Array<{
+      attributeName: string;
+      attributeValue: string;
+    }>;
+  };
+  images?: {
+    create: Array<{
+      imageUrl: string;
+      isPrimary: boolean;
+      sortOrder?: number;
+    }>;
+  };
 };
 
 type ProductStats = {
@@ -96,17 +115,32 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     fetchStats();
   }, []);
 
-  // Fetch products when page changes
+  // Fetch products when page or filters change
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/products?page=${currentPage}&limit=20`, {
+        const queryParams = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '20',
+          ...(searchTerm && { search: searchTerm }),
+          ...(statusFilter !== 'all' && { status: statusFilter }),
+        });
+
+        if (categoryFilter !== 'all') {
+          if (!isNaN(Number(categoryFilter))) {
+            queryParams.append('categoryId', categoryFilter);
+          } else {
+            queryParams.append('categoryName', categoryFilter);
+          }
+        }
+
+        const response = await fetch(`${API_URL}/products?${queryParams.toString()}`, {
           credentials: 'include'
         });
         if (response.ok) {
           const data = await response.json();
-          setProducts(data.data.products || data.data);
+          setProducts(data.data.products || []);
           setPagination(data.data.pagination || null);
         } else {
           console.error("Error fetching products:", response.statusText);
@@ -121,17 +155,17 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       }
     };
-    fetchProducts();
-  }, [currentPage]);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.slug && product.slug.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = categoryFilter === "all" || product.categoryId?.toString() === categoryFilter;
-    const matchesStatus = statusFilter === "all" || product.status === statusFilter;
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchProducts();
+    }, 500);
 
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+    return () => clearTimeout(timeoutId);
+  }, [currentPage, searchTerm, categoryFilter, statusFilter]);
+
+  // Products are already filtered by the backend
+  const filteredProducts = products;
 
   const addProduct = async (productData: NewProductPayload) => {
     try {

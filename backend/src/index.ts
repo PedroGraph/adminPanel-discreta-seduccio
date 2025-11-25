@@ -11,11 +11,13 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
 
 app.use(cors({
-  origin: 'http://localhost:8080', // Ajusta esto al puerto de tu frontend
+  origin: allowedOrigins,
   credentials: true
 }));
+
 app.use(cookieParser());
 app.use(express.json());
 
@@ -26,7 +28,9 @@ app.use(errorHandler);
 export const server = createServer(app);
 
 server.listen(port, () => {
-  logger.info(`🚀 Servidor corriendo en http://localhost:${port}`);
+  logger.info(`Server running on port ${port}.`);
+  logger.info(`Allowed origins: ${allowedOrigins.join(', ')}.`);
+  logger.info(`URL: http://localhost:${port}`);
 });
 
 export default app;
