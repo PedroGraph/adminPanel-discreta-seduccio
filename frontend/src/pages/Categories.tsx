@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FolderTree, 
-  Plus, 
-  Search, 
-  Edit, 
+import {
+  FolderTree,
+  Plus,
+  Search,
+  Edit,
   Trash2,
   Eye,
   Package
@@ -17,18 +17,19 @@ import { useCategories } from "@/hooks/useCategories";
 import { CreateCategoryModal } from "@/components/categories/CreateCategoryModal";
 import { EditCategoryModal } from "@/components/categories/EditCategoryModal";
 import { DeleteCategoryModal } from "@/components/categories/DeleteCategoryModal";
+import { CategoriesSkeleton } from "@/components/categories/CategoriesSkeleton";
 
 export const Categories = () => {
-  const { categories, loading } = useCategories();
+  const { categories, stats, loading, fetchCategories } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
-  const buildCategoryTree = (categories: any[], parentId: string | null = null, level: number = 0): any[] => {
+  const buildCategoryTree = (categories: any[], parentId: number | null = null, level: number = 0): any[] => {
     return categories
-      .filter(cat => cat.parent_id === parentId)
+      .filter(cat => cat.parentId === parentId)
       .map(cat => ({
         ...cat,
         level,
@@ -52,14 +53,19 @@ export const Categories = () => {
 
   const categoryTree = buildCategoryTree(categories);
   const allCategories = flattenCategories(categoryTree);
-  
-  const filteredCategories = allCategories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+
+  const filteredCategories = allCategories.filter(category => {
+    const term = searchTerm.toLowerCase();
+    return (
+      category.name.toLowerCase().includes(term) ||
+      (category.slug && category.slug.toLowerCase().includes(term)) ||
+      (category.description && category.description.toLowerCase().includes(term)) ||
+      category.id.toString().includes(term)
+    );
+  });
 
   const getStatusColor = (status: string) => {
-    return status === 'Activa' ? 'bg-green-600' : 'bg-gray-600';
+    return status === 'active' ? 'bg-green-600' : 'bg-gray-600';
   };
 
   const getIndentation = (level: number) => {
@@ -77,13 +83,7 @@ export const Categories = () => {
   };
 
   if (loading) {
-    return (
-      <div className="p-6 bg-gray-800 min-h-screen">
-        <div className="flex justify-center items-center h-64">
-          <div className="text-white">Cargando categorías...</div>
-        </div>
-      </div>
-    );
+    return <CategoriesSkeleton />;
   }
 
   return (
@@ -101,7 +101,7 @@ export const Categories = () => {
             <FolderTree className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{allCategories.length}</div>
+            <div className="text-2xl font-bold text-white">{stats.total}</div>
             <p className="text-xs text-blue-400">Activas e inactivas</p>
           </CardContent>
         </Card>
@@ -113,7 +113,7 @@ export const Categories = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {allCategories.filter(c => c.status === 'Activa').length}
+              {stats.activeCount}
             </div>
             <p className="text-xs text-green-400">Visibles en la tienda</p>
           </CardContent>
@@ -126,7 +126,7 @@ export const Categories = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {allCategories.reduce((sum, cat) => sum + (cat.products_count || 0), 0)}
+              {stats.totalProducts}
             </div>
             <p className="text-xs text-purple-400">En todas las categorías</p>
           </CardContent>
@@ -146,7 +146,7 @@ export const Categories = () => {
                 className="pl-8 bg-gray-800 border-gray-600 text-white"
               />
             </div>
-            <Button 
+            <Button
               onClick={() => setShowCreateModal(true)}
               className="bg-purple-700 hover:bg-purple-600"
             >
@@ -194,7 +194,7 @@ export const Categories = () => {
                     <td className="p-3 text-gray-300">{category.description}</td>
                     <td className="p-3 text-center">
                       <Badge variant="outline" className="text-purple-300 border-purple-500">
-                        {category.products_count || 0}
+                        {category.productCount || 0}
                       </Badge>
                     </td>
                     <td className="p-3 text-center">
@@ -204,17 +204,17 @@ export const Categories = () => {
                     </td>
                     <td className="p-3 text-center">
                       <div className="flex justify-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-xs"
                           onClick={() => handleEdit(category)}
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-xs text-red-400"
                           onClick={() => handleDelete(category)}
                         >
@@ -235,19 +235,22 @@ export const Categories = () => {
         </CardContent>
       </Card>
 
-      <CreateCategoryModal 
-        open={showCreateModal} 
-        onOpenChange={setShowCreateModal} 
+      <CreateCategoryModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSuccess={fetchCategories}
       />
-      <EditCategoryModal 
-        open={showEditModal} 
+      <EditCategoryModal
+        open={showEditModal}
         onOpenChange={setShowEditModal}
         category={selectedCategory}
+        onSuccess={fetchCategories}
       />
-      <DeleteCategoryModal 
-        open={showDeleteModal} 
+      <DeleteCategoryModal
+        open={showDeleteModal}
         onOpenChange={setShowDeleteModal}
         category={selectedCategory}
+        onSuccess={fetchCategories}
       />
     </div>
   );

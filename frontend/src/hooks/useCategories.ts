@@ -1,35 +1,36 @@
-
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import * as CategoryService from "@/services/categories.service";
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  parent_id: string | null;
-  status: string;
-  products_count: number | null;
-  sort_order: number | null;
-  created_at: string;
-  updated_at: string;
+// Re-export types
+export type Category = CategoryService.Category;
+
+export interface CategoryStats {
+  total: number;
+  activeCount: number;
+  totalProducts: number;
 }
 
 export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [stats, setStats] = useState<CategoryStats>({
+    total: 0,
+    activeCount: 0,
+    totalProducts: 0
+  });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
+      setLoading(true);
+      const data = await CategoryService.getAllCategories();
+      setCategories(data.categories);
+      setStats({
+        total: data.total,
+        activeCount: data.activeCount,
+        totalProducts: data.totalProducts
+      });
     } catch (error) {
       console.error('Error fetching categories:', error);
       toast({
@@ -42,19 +43,13 @@ export const useCategories = () => {
     }
   };
 
-  const createCategory = async (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>) => {
+  const createCategory = async (categoryData: CategoryService.CreateCategoryPayload) => {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .insert([category]);
-
-      if (error) throw error;
-
+      await CategoryService.createCategory(categoryData);
       toast({
         title: "Éxito",
         description: "Categoría creada correctamente",
       });
-
       fetchCategories();
       return true;
     } catch (error) {
@@ -68,20 +63,13 @@ export const useCategories = () => {
     }
   };
 
-  const updateCategory = async (id: string, updates: Partial<Category>) => {
+  const updateCategory = async (id: number, updates: CategoryService.UpdateCategoryPayload) => {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await CategoryService.updateCategory(id, updates);
       toast({
         title: "Éxito",
         description: "Categoría actualizada correctamente",
       });
-
       fetchCategories();
       return true;
     } catch (error) {
@@ -95,27 +83,20 @@ export const useCategories = () => {
     }
   };
 
-  const deleteCategory = async (id: string) => {
+  const deleteCategory = async (id: number) => {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await CategoryService.deleteCategory(id);
       toast({
         title: "Éxito",
         description: "Categoría eliminada correctamente",
       });
-
       fetchCategories();
       return true;
     } catch (error) {
       console.error('Error deleting category:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar la categoría",
+        description: error instanceof Error ? error.message : "No se pudo eliminar la categoría",
         variant: "destructive",
       });
       return false;
@@ -128,6 +109,7 @@ export const useCategories = () => {
 
   return {
     categories,
+    stats,
     loading,
     createCategory,
     updateCategory,

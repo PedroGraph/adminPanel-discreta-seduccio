@@ -5,9 +5,12 @@ import dashboardRoutes from './dashboard.routes.js';
 import userRoutes from './user.routes.js';
 import uploadRoutes from './upload.routes.js';
 
+import categoriesRoutes from './categories.routes.js';
+
 const router = Router();
 
 router.use('/products', productsRoutes);
+router.use('/categories', categoriesRoutes);
 router.use('/auth', authRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/users', userRoutes);

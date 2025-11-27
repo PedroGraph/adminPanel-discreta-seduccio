@@ -12,19 +12,18 @@ interface EditCategoryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category: Category | null;
+  onSuccess?: () => void;
 }
 
-export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategoryModalProps) => {
+export const EditCategoryModal = ({ open, onOpenChange, category, onSuccess }: EditCategoryModalProps) => {
   const { categories, updateCategory } = useCategories();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     description: "",
-    parent_id: null as string | null,
-    status: "Activa",
-    products_count: 0,
-    sort_order: 0,
+    parentId: null as number | null,
+    status: "active" as "active" | "inactive",
   });
 
   useEffect(() => {
@@ -33,10 +32,8 @@ export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategory
         name: category.name,
         slug: category.slug,
         description: category.description || "",
-        parent_id: category.parent_id,
+        parentId: category.parentId,
         status: category.status,
-        products_count: category.products_count || 0,
-        sort_order: category.sort_order || 0,
       });
     }
   }, [category]);
@@ -51,6 +48,7 @@ export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategory
 
     if (success) {
       onOpenChange(false);
+      onSuccess?.();
     }
 
     setLoading(false);
@@ -58,7 +56,7 @@ export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategory
 
   if (!category) return null;
 
-  const parentCategories = categories.filter(cat => cat.parent_id === null && cat.id !== category.id);
+  const parentCategories = categories.filter(cat => cat.parentId === null && cat.id !== category.id);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,10 +100,10 @@ export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategory
           </div>
 
           <div>
-            <Label htmlFor="parent_id" className="text-white">Categoría Padre (opcional)</Label>
-            <Select 
-              value={formData.parent_id || "none"} 
-              onValueChange={(value) => setFormData({ ...formData, parent_id: value === "none" ? null : value })}
+            <Label htmlFor="parentId" className="text-white">Categoría Padre (opcional)</Label>
+            <Select
+              value={formData.parentId?.toString() || "none"}
+              onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? null : parseInt(value) })}
             >
               <SelectTrigger className="bg-gray-800 border-gray-600 text-white focus:border-purple-500 focus:ring-purple-500">
                 <SelectValue placeholder="Seleccionar categoría padre" />
@@ -113,7 +111,7 @@ export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategory
               <SelectContent className="bg-gray-800 border-gray-600">
                 <SelectItem value="none" className="text-white hover:bg-gray-700 focus:bg-gray-700">Sin categoría padre</SelectItem>
                 {parentCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id} className="text-white hover:bg-gray-700 focus:bg-gray-700">
+                  <SelectItem key={cat.id} value={cat.id.toString()} className="text-white hover:bg-gray-700 focus:bg-gray-700">
                     {cat.name}
                   </SelectItem>
                 ))}
@@ -121,28 +119,18 @@ export const EditCategoryModal = ({ open, onOpenChange, category }: EditCategory
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <Label htmlFor="status" className="text-white">Estado</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as "active" | "inactive" })}>
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white focus:border-purple-500 focus:ring-purple-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="Activa" className="text-white hover:bg-gray-700 focus:bg-gray-700">Activa</SelectItem>
-                  <SelectItem value="Inactiva" className="text-white hover:bg-gray-700 focus:bg-gray-700">Inactiva</SelectItem>
+                  <SelectItem value="active" className="text-white hover:bg-gray-700 focus:bg-gray-700">Activa</SelectItem>
+                  <SelectItem value="inactive" className="text-white hover:bg-gray-700 focus:bg-gray-700">Inactiva</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label htmlFor="sort_order" className="text-white">Orden</Label>
-              <Input
-                id="sort_order"
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500"
-              />
             </div>
           </div>
 
