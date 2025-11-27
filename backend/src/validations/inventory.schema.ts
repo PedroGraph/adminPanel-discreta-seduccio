@@ -14,12 +14,10 @@ export const updateInventorySchema = createInventorySchema.partial();
 
 export const inventoryMovementSchema = z.object({
   productId: z.number().int().positive(),
-  warehouseId: z.number().int().positive(),
-  quantity: z.number().int(),
-  type: z.enum(['incoming', 'outgoing', 'adjustment', 'transfer']),
-  referenceType: z.string().optional(),
-  referenceId: z.string().optional(),
-  notes: z.string().optional(),
+  type: z.enum(['entrada', 'salida', 'ajuste', 'incoming', 'outgoing', 'adjustment', 'transfer']),
+  quantity: z.number().int().positive(),
+  reason: z.string().optional(),
+  cost: z.number().optional(),
 });
 
 export const inventoryQuerySchema = z.object({
@@ -31,4 +29,4 @@ export const inventoryQuerySchema = z.object({
   lowStock: z.enum(['true', 'false']).optional(),
   sortBy: z.enum(['productName', 'quantity', 'createdAt', 'updatedAt']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
-}); 
+});

@@ -1,72 +1,68 @@
-
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  getInventory, 
+  getMovements, 
+  createMovement as createMovementService, 
+  getInventoryStats,
+  InventoryProduct, 
+  InventoryMovement,
+  InventoryStats
+} from "@/services/inventory.service";
 
-export interface InventoryProduct {
-  id: string;
-  name: string;
-  sku: string;
-  current_stock: number;
-  min_stock: number;
-  max_stock: number;
-  cost: number;
-  sell_price: number;
-  supplier: string | null;
-  category: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface InventoryMovement {
-  id: string;
-  product_id: string;
-  movement_type: string;
-  quantity: number;
-  reason: string;
-  reference_id: string | null;
-  cost_per_unit: number | null;
-  total_cost: number | null;
-  created_by: string | null;
-  created_at: string;
-}
+export type { InventoryProduct, InventoryMovement };
 
 export const useInventory = () => {
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
+  const [stats, setStats] = useState<InventoryStats>({
+    totalValue: 0,
+    inStock: 0,
+    lowStock: 0,
+    outOfStock: 0
+  });
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 1
+  });
+  
   const { toast } = useToast();
 
-  const fetchProducts = async () => {
+  const fetchInventory = useCallback(async (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  } = {}) => {
     try {
-      const { data, error } = await supabase
-        .from('inventory_products')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setProducts(data || []);
+      setLoading(true);
+      const data = await getInventory(params);
+      setProducts(data.products);
+      setPagination({
+        page: data.page,
+        limit: data.limit,
+        total: data.total,
+        totalPages: data.totalPages
+      });
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching inventory:', error);
       toast({
         title: "Error",
         description: "No se pudieron cargar los productos",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const fetchMovements = async () => {
+  const fetchRecentMovements = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('inventory_movements')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setMovements(data || []);
+      const data = await getMovements();
+      setMovements(data);
     } catch (error) {
       console.error('Error fetching movements:', error);
       toast({
@@ -75,33 +71,43 @@ export const useInventory = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await getInventoryStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  }, []);
 
   const createMovement = async (movement: {
-    product_id: string;
+    product_id: string; 
     movement_type: string;
     quantity: number;
     reason: string;
     cost_per_unit?: number;
   }) => {
     try {
-      const { error } = await supabase
-        .from('inventory_movements')
-        .insert([{
-          ...movement,
-          total_cost: movement.cost_per_unit ? movement.cost_per_unit * movement.quantity : null,
-          created_by: 'Admin' // En un futuro se puede obtener del usuario actual
-        }]);
-
-      if (error) throw error;
+      await createMovementService({
+        productId: parseInt(movement.product_id),
+        type: movement.movement_type,
+        quantity: movement.quantity,
+        reason: movement.reason,
+        cost: movement.cost_per_unit
+      });
 
       toast({
         title: "Éxito",
         description: "Movimiento creado correctamente",
       });
 
-      // Refrescar datos
-      await Promise.all([fetchProducts(), fetchMovements()]);
+      await Promise.all([
+        fetchInventory({ page: pagination.page, limit: pagination.limit }), 
+        fetchRecentMovements(),
+        fetchStats()
+      ]);
       return true;
     } catch (error) {
       console.error('Error creating movement:', error);
@@ -117,19 +123,25 @@ export const useInventory = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchProducts(), fetchMovements()]);
+      await Promise.all([
+        fetchInventory(), 
+        fetchRecentMovements(),
+        fetchStats()
+      ]);
       setLoading(false);
     };
 
     loadData();
-  }, []);
+  }, [fetchInventory, fetchRecentMovements, fetchStats]);
 
   return {
     products,
     movements,
+    stats,
     loading,
-    fetchProducts,
-    fetchMovements,
+    pagination,
+    fetchInventory,
+    fetchMovements: fetchRecentMovements,
     createMovement,
   };
 };

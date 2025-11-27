@@ -37,7 +37,7 @@ export const AddMovementModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.product_id || !formData.movement_type || !formData.quantity || !formData.reason) {
       return;
     }
@@ -82,7 +82,7 @@ export const AddMovementModal = ({
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
                 {products.map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
+                  <SelectItem key={product.id} value={product.id.toString()}>
                     {product.name} ({product.sku})
                   </SelectItem>
                 ))}
