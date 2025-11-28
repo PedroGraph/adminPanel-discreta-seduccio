@@ -44,7 +44,8 @@ export class InventoryService {
       let processedProducts = products.map(product => {
         const totalStock = product.inventory.reduce((sum, inv) => sum + inv.availableQuantity, 0);
         const minStock = product.inventory.reduce((sum, inv) => sum + (inv.thresholdQuantity || 0), 0);
-        const cost = Number(product.costPrice || 0);
+        // Use costPrice if available, otherwise use price as fallback
+        const cost = Number(product.costPrice || product.price || 0);
         
         let stockStatus = 'in_stock';
         if (totalStock === 0) stockStatus = 'out_of_stock';
@@ -219,7 +220,8 @@ export class InventoryService {
       products.forEach(p => {
         const stock = p.inventory.reduce((sum, i) => sum + i.availableQuantity, 0);
         const min = p.inventory.reduce((sum, i) => sum + (i.thresholdQuantity || 0), 0);
-        const cost = Number(p.costPrice || 0);
+        // Use costPrice if available, otherwise use price as fallback
+        const cost = Number(p.costPrice || p.price || 0);
 
         totalValue += stock * cost;
 
