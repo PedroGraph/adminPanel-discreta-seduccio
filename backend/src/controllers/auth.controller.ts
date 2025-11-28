@@ -23,10 +23,12 @@ export class AuthController {
         description: 'Usuario logueado exitosamente'
       });
 
+   
+      const isProduction = process.env.ENV_PROYECT === 'production';
       res.cookie('token', result.token, {
         httpOnly: true,
-        secure: process.env.ENV_PROYECT === 'production', 
-        sameSite: 'strict',
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax', 
         maxAge: 24 * 60 * 60 * 1000 
       });
 
