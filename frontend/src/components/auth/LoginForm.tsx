@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Lock, Mail, LogIn } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { login as loginService } from '@/services/auth.service';
 import { useI18n } from '@/hooks/use-i18n';
 
 const loginSchema = z.object({
@@ -33,22 +34,7 @@ export const LoginForm = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión');
-      }
-
-      const user = data.data;
+      const user = await loginService(values as any);
 
       login(user);
 

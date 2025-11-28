@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { getCurrentUser, logout as logoutService } from '@/services/auth.service';
 
 // Definimos los tipos basados en la respuesta del backend
 export interface User {
@@ -24,16 +25,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/me', {
-        credentials: 'include', // Importante para enviar cookies
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.data);
-      } else {
-        setUser(null);
-      }
+      const user = await getCurrentUser();
+      setUser(user);
     } catch (error) {
       console.error('Error checking auth:', error);
       setUser(null);
@@ -52,10 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:3000/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await logoutService();
       setUser(null);
     } catch (error) {
       console.error('Error during logout:', error);

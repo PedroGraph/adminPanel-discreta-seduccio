@@ -32,7 +32,7 @@ export class AuthController {
 
       
       const { token, ...userWithoutToken } = result;
-      sendSuccess(res, userWithoutToken, 'Login exitoso');
+      sendSuccess(res, { user: userWithoutToken }, 'Login exitoso');
     } catch (error) {
       logger.error('Error en login:', error);
       if (error instanceof Error) {

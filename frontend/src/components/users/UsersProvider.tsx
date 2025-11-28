@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { getAllUsers, createUser, updateUser, deleteUser } from "@/services/users.service";
 
 type User = {
   id: number;
@@ -46,8 +47,6 @@ interface UsersContextType {
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
-const API_URL = 'http://localhost:3000/api';
-
 export const UsersProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,15 +63,8 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/users`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUsers(data.data);
-        } else {
-          console.error("Error fetching users:", response.statusText);
-        }
+        const data = await getAllUsers();
+        setUsers(data);
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -93,39 +85,17 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
 
   const addUser = async (userData: NewUserPayload) => {
     try {
-      const response = await fetch(`${API_URL}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "No se pudo crear el usuario.");
-      }
-
-      const result = await response.json();
-      setUsers(prev => [...prev, result.data]);
+      const newUser = await createUser(userData);
+      setUsers(prev => [...prev, newUser]);
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
     }
   };
 
-  const deleteUser = async (id: number) => {
+  const deleteUserHandler = async (id: number) => {
     try {
-      const response = await fetch(`${API_URL}/users/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error("No se pudo eliminar el usuario.");
-      }
-
+      await deleteUser(id);
       setUsers(prev => prev.filter(user => user.id !== id));
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -133,24 +103,11 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateUser = async (id: number, updates: Partial<User>) => {
+  const updateUserHandler = async (id: number, updates: Partial<User>) => {
     try {
-      const response = await fetch(`${API_URL}/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        throw new Error("No se pudo actualizar el usuario.");
-      }
-
-      const result = await response.json();
+      const updatedUser = await updateUser(id, updates);
       setUsers(prev => prev.map(user =>
-        user.id === id ? result.data : user
+        user.id === id ? updatedUser : user
       ));
     } catch (error) {
       console.error("Error updating user:", error);
@@ -180,8 +137,8 @@ export const UsersProvider = ({ children }: { children: ReactNode }) => {
       setIsDeleteModalOpen,
       setIsEditModalOpen,
       addUser,
-      deleteUser,
-      updateUser,
+      deleteUser: deleteUserHandler,
+      updateUser: updateUserHandler,
     }}>
       {children}
     </UsersContext.Provider>
