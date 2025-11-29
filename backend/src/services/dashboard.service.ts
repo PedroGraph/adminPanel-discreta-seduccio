@@ -81,61 +81,77 @@ export class DashboardService {
       orderBy: { _sum: { quantity: 'desc' } },
       take: 20,
     });
-    availableQuantity: {
-      lte: prisma.inventory.fields.thresholdQuantity
-    }
-  },
-  include: {
-    product: {
-      select: { name: true }
-    }
-  },
-  take: 20
-});
 
-const formattedLowStock = lowStockProducts.map(inv => ({
-  name: inv.product.name,
-  stock: inv.availableQuantity,
-  threshold: inv.thresholdQuantity
-}));
+    const topProductsDetails = await Promise.all(topProducts.map(async (item) => {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+        select: { name: true, price: true }
+      });
+      return {
+        name: product?.name,
+        sales: Number(item._sum.quantity || 0),
+        price: product?.price
+      };
+    }));
 
-// 4. Recent Orders (Últimas 10)
-const recentOrders = await prisma.order.findMany({
-  take: 10,
-  orderBy: { createdAt: 'desc' },
-  include: {
-    customer: {
-      select: { name: true, email: true }
-    }
-  }
-});
+    // Productos con poco stock
+    const lowStockProducts = await prisma.inventory.findMany({
+      where: {
+        availableQuantity: {
+          lte: prisma.inventory.fields.thresholdQuantity
+        }
+      },
+      include: {
+        product: {
+          select: { name: true }
+        }
+      },
+      take: 20
+    });
 
-const formattedRecentOrders = recentOrders.map(order => ({
-  id: order.id,
-  orderNumber: order.orderNumber,
-  customer: order.customer?.name || 'Guest',
-  amount: order.totalAmount,
-  status: order.status,
-  date: order.createdAt
-}));
+    const formattedLowStock = lowStockProducts.map(inv => ({
+      name: inv.product.name,
+      stock: inv.availableQuantity,
+      threshold: inv.thresholdQuantity
+    }));
 
-return {
-  stats_cards: {
-    sales: {
-      total: totalSales,
-      percentage: Number(salesPercentage.toFixed(2))
-    },
-    orders: {
-      total: currentMonthOrders,
-      percentage: Number(ordersPercentage.toFixed(2))
-    }
-  },
-  graphs: formattedMonthlyStats,
-  products: {
-    top_selling: topProductsDetails,
-    low_stock: formattedLowStock
-  },
-  recent_orders: formattedRecentOrders
-};
+    // 4. Recent Orders (Últimas 10)
+    const recentOrders = await prisma.order.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        customer: {
+          select: { name: true, email: true }
+        }
+      }
+    });
+
+    const formattedRecentOrders = recentOrders.map(order => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customer: order.customer?.name || 'Guest',
+      amount: order.totalAmount,
+      status: order.status,
+      date: order.createdAt
+    }));
+
+    return {
+      stats_cards: {
+        sales: {
+          total: totalSales,
+          percentage: Number(salesPercentage.toFixed(2))
+        },
+        orders: {
+          total: currentMonthOrders,
+          percentage: Number(ordersPercentage.toFixed(2))
+        }
+      },
+      graphs: formattedMonthlyStats,
+      products: {
+        top_selling: topProductsDetails,
+        low_stock: formattedLowStock
+      },
+      recent_orders: formattedRecentOrders
+    };
   }
 }
