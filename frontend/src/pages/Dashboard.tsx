@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useActivities } from "@/components/activity/ActivityProvider";
 import { useUsers } from "@/components/users/UsersProvider";
 import { format, subDays, parseISO } from "date-fns";
@@ -66,10 +67,37 @@ export const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-transparent">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-purple-300">Cargando dashboard...</p>
+      <div className="space-y-6 p-6">
+        <div>
+          <Skeleton className="h-9 w-64 mb-2 bg-gray-900/20" />
+          <Skeleton className="h-6 w-96 bg-purple-900/20" />
+        </div>
+
+        {/* Quick Actions Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl bg-gray-900/20" />
+          ))}
+        </div>
+
+        {/* Widgets Toggles Skeleton */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-24 rounded-full bg-gray-900/20" />
+          ))}
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-xl bg-gray-900/20" />
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-[400px] rounded-xl bg-gray-900/20" />
+          <Skeleton className="h-[400px] rounded-xl bg-gray-900/20" />
         </div>
       </div>
     );

@@ -1,42 +1,51 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, Loader2, AlertCircle } from "lucide-react";
 import { useI18n } from "@/hooks/use-i18n";
 import { useAnalytics } from "@/hooks/use-analytics";
 
-// Colores para el gráfico de productos más vendidos
 const PRODUCT_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe'];
 
 export const Analytics = () => {
   const t = useI18n();
   const { data: analytics, isLoading, error } = useAnalytics();
 
-  // Función para formatear números como moneda
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'USD',
     }).format(value);
   };
 
-  // Función para formatear números
   const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('es-MX').format(value);
+    return new Intl.NumberFormat('es-CO').format(value);
   };
 
-  // Estado de carga
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-800 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 text-purple-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Cargando estadísticas...</p>
+      <div className="p-6 bg-gray-800 min-h-screen">
+        <div className="mb-6">
+          <Skeleton className="h-9 w-64 mb-2 bg-gray-700" />
+          <Skeleton className="h-6 w-96 bg-gray-700" />
+        </div>
+
+        {/* KPI Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-xl bg-gray-700" />
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Skeleton className="h-[400px] rounded-xl bg-gray-700" />
+          <Skeleton className="h-[400px] rounded-xl bg-gray-700" />
         </div>
       </div>
     );
   }
 
-  // Estado de error
   if (error) {
     return (
       <div className="p-6 bg-gray-800 min-h-screen flex items-center justify-center">
@@ -49,7 +58,6 @@ export const Analytics = () => {
     );
   }
 
-  // Si no hay datos
   if (!analytics) {
     return (
       <div className="p-6 bg-gray-800 min-h-screen flex items-center justify-center">
@@ -60,7 +68,6 @@ export const Analytics = () => {
 
   const { statsCards, charts } = analytics;
 
-  // Preparar datos para el gráfico de productos con colores
   const topProductsWithColors = charts.topProducts.map((product, index) => ({
     ...product,
     color: PRODUCT_COLORS[index % PRODUCT_COLORS.length]
