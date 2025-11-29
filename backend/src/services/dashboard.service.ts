@@ -69,17 +69,17 @@ export class DashboardService {
     // Convert BigInt to Number for serialization
     const formattedMonthlyStats = (monthlyStats as any[]).map(stat => ({
       name: stat.name,
-      sales: Number(stat.sales || 0),
-      orders: Number(stat.orders || 0)
+      total_sales: Number(stat.sales || 0),
+      total_orders: Number(stat.orders || 0)
     }));
 
     // 3. Products Info
-    // Top 20 productos más vendidos
+    // Top 5 productos más vendidos
     const topProducts = await prisma.orderItem.groupBy({
       by: ['productId'],
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
-      take: 20,
+      take: 5,
     });
 
     const topProductsDetails = await Promise.all(topProducts.map(async (item) => {
