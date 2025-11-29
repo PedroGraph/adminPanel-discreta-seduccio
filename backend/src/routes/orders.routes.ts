@@ -6,5 +6,6 @@ const ordersController = new OrdersController();
 
 router.get('/', ordersController.getOrders);
 router.get('/stats', ordersController.getStats);
+router.get('/:id', ordersController.getOrderById);
 
 export default router;

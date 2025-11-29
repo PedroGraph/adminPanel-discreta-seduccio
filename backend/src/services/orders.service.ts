@@ -129,6 +129,45 @@ export class OrdersService {
         }
     }
 
+    async getOrderById(id: number) {
+        try {
+            const order = await prisma.order.findUnique({
+                where: { id },
+                include: {
+                    customer: true,
+                    items: {
+                        include: {
+                            product: true
+                        }
+                    },
+                    shippingAddress: true,
+                    shipments: true
+                }
+            });
+
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            return {
+                ...order,
+                totalAmount: Number(order.totalAmount),
+                items: order.items.map(item => ({
+                    ...item,
+                    unitPrice: Number(item.unitPrice),
+                    totalPrice: Number(item.totalPrice),
+                    product: {
+                        ...item.product,
+                        price: Number(item.product.price)
+                    }
+                }))
+            };
+        } catch (error) {
+            logger.error('Error getting order by id:', error);
+            throw error;
+        }
+    }
+
     async getStats() {
         try {
             const total = await prisma.order.count();

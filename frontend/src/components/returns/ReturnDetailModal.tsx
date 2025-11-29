@@ -46,7 +46,7 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
             Detalles de la Devolución {returnItem.id}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Estado y información básica */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -66,7 +66,7 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
                 </div>
                 <div>
                   <span className="text-purple-400 text-sm">Fecha de solicitud:</span>
-                  <span className="text-purple-100 ml-2">{returnItem.request_date}</span>
+                  <span className="text-purple-100 ml-2">{new Date(returnItem.created_at).toLocaleDateString()}</span>
                 </div>
                 <div>
                   <span className="text-purple-400 text-sm">Total productos:</span>
@@ -117,11 +117,11 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
                       <div className="space-y-2">
                         <div>
                           <span className="text-purple-400 text-sm">Producto:</span>
-                          <span className="text-purple-100 ml-2 font-medium">{item.product_name}</span>
+                          <span className="text-purple-100 ml-2 font-medium">{item.product?.name || 'Producto desconocido'}</span>
                         </div>
                         <div>
                           <span className="text-purple-400 text-sm">Cantidad a devolver:</span>
-                          <span className="text-purple-100 ml-2">{item.quantity_to_return} de {item.quantity}</span>
+                          <span className="text-purple-100 ml-2">{item.quantity}</span>
                         </div>
                         <div>
                           <span className="text-purple-400 text-sm">Precio unitario:</span>
@@ -135,8 +135,8 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
                         </div>
                         <div>
                           <span className="text-purple-400 text-sm">Tipo:</span>
-                          <Badge variant="outline" className={`ml-2 ${getReturnTypeColor(item.return_type)}`}>
-                            {item.return_type}
+                          <Badge variant="outline" className={`ml-2 border-purple-600 text-purple-400 bg-purple-900/20`}>
+                            Reembolso
                           </Badge>
                         </div>
                         <div>
@@ -161,20 +161,16 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
             </CardHeader>
             <CardContent>
               <p className="text-purple-100 text-sm">
-                {returnItem.status === "Aprobado" 
+                {returnItem.status === "Aprobado"
                   ? "El reembolso será procesado en 3-5 días hábiles al método de pago original."
                   : returnItem.status === "Pendiente"
-                  ? "La solicitud está siendo revisada por nuestro equipo."
-                  : returnItem.status === "Procesando"
-                  ? "La devolución está siendo procesada."
-                  : "La solicitud de devolución ha sido rechazada."
+                    ? "La solicitud está siendo revisada por nuestro equipo."
+                    : returnItem.status === "Procesando"
+                      ? "La devolución está siendo procesada."
+                      : "La solicitud de devolución ha sido rechazada."
                 }
               </p>
-              {returnItem.return_items.some(item => item.return_type === "Intercambio") && (
-                <p className="text-blue-300 text-sm mt-2">
-                  ⚠️ Esta devolución incluye productos para intercambio. Se coordinará el envío de los productos de reemplazo.
-                </p>
-              )}
+              {/* Removed Intercambio check as it is not supported in backend yet */}
             </CardContent>
           </Card>
         </div>

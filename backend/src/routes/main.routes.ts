@@ -9,6 +9,7 @@ import analyticsRoutes from './analytics.routes.js';
 import ordersRoutes from './orders.routes.js';
 import couponsRoutes from './coupons.routes.js';
 import categoriesRoutes from './categories.routes.js';
+import returnsRoutes from './returns.routes.js';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/upload', uploadRoutes);
 router.use('/inventory', inventoryRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/orders', ordersRoutes);
+router.use('/returns', returnsRoutes);
 router.use('/coupons', couponsRoutes);
 
 export default router;

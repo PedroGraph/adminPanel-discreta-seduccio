@@ -1,8 +1,22 @@
+export interface ReturnItem {
+  id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  reason: string;
+  product?: {
+    name: string;
+  };
+}
 
-import { Database } from "@/integrations/supabase/types";
-
-export type ReturnItem = Database["public"]["Tables"]["return_items"]["Row"];
-
-export type Return = Database["public"]["Tables"]["returns"]["Row"] & {
+export interface Return {
+  id: number;
+  return_number: string;
+  order_id: string; // Order number
+  customer: string; // Customer name
+  status: string;
+  total_refund_amount: number;
   return_items: ReturnItem[];
-};
+  created_at: string;
+}

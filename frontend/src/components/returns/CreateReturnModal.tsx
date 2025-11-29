@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RotateCcw, Package, Plus, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { mockOrderProducts } from "@/data/returnsData";
+import { getOrders, getOrderById, Order } from "@/services/orders.service";
+import { createReturn } from "@/services/returns.service";
 
 interface CreateReturnModalProps {
   open: boolean;
@@ -29,7 +30,7 @@ interface CreateReturnModalProps {
 }
 
 interface SelectedProduct {
-  id: string;
+  id: number; // Changed to number to match backend
   name: string;
   quantity: number;
   quantityToReturn: number;
@@ -45,16 +46,47 @@ export const CreateReturnModal = ({ open, onOpenChange }: CreateReturnModalProps
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
 
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await getOrders({ limit: 100 });
+        setOrders(response.orders);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchOrders();
+  }, []);
+
   useEffect(() => {
     if (orderId) {
-      const orderData = mockOrderProducts.find(order => order.orderId === orderId);
-      if (orderData) {
-        setAvailableProducts(orderData.products);
-        setSelectedProducts([]);
-      } else {
-        setAvailableProducts([]);
-        setSelectedProducts([]);
-      }
+      const fetchOrderDetails = async () => {
+        try {
+          const order = await getOrderById(Number(orderId));
+          if (order && order.items) {
+            setAvailableProducts(order.items.map((item: any) => ({
+              id: item.productId,
+              name: item.product.name,
+              quantity: item.quantity,
+              price: item.unitPrice
+            })));
+            setSelectedProducts([]);
+          }
+        } catch (error) {
+          console.error(error);
+          toast({
+            title: "Error",
+            description: "Error al cargar los detalles de la orden",
+            variant: "destructive"
+          });
+        }
+      };
+      fetchOrderDetails();
+    } else {
+      setAvailableProducts([]);
+      setSelectedProducts([]);
     }
   }, [orderId]);
 
@@ -72,17 +104,17 @@ export const CreateReturnModal = ({ open, onOpenChange }: CreateReturnModalProps
     }
   };
 
-  const handleRemoveProduct = (productId: string) => {
+  const handleRemoveProduct = (productId: number) => {
     setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
   };
 
-  const updateProductField = (productId: string, field: keyof SelectedProduct, value: any) => {
+  const updateProductField = (productId: number, field: keyof SelectedProduct, value: any) => {
     setSelectedProducts(selectedProducts.map(p =>
       p.id === productId ? { ...p, [field]: value } : p
     ));
   };
 
-  const updateQuantity = (productId: string, change: number) => {
+  const updateQuantity = (productId: number, change: number) => {
     setSelectedProducts(selectedProducts.map(p => {
       if (p.id === productId) {
         const newQuantity = Math.max(1, Math.min(p.quantity, p.quantityToReturn + change));
@@ -98,7 +130,7 @@ export const CreateReturnModal = ({ open, onOpenChange }: CreateReturnModalProps
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!orderId || selectedProducts.length === 0) {
@@ -120,16 +152,43 @@ export const CreateReturnModal = ({ open, onOpenChange }: CreateReturnModalProps
       return;
     }
 
-    toast({
-      title: "Devolución creada",
-      description: `Se ha creado la solicitud de devolución para ${selectedProducts.length} producto(s) de la orden ${orderId}`,
-    });
+    try {
+      // Find the order object to get the order number (string) if needed, 
+      // but createReturn expects orderId as string (which is what we have in orderId state if we used ID as value).
+      // Wait, backend createReturn expects orderNumber as string in data.orderId.
+      // But I am using order.id (number) as value in Select.
+      // So I need to pass the order NUMBER to createReturn.
+      const selectedOrder = orders.find(o => o.id === Number(orderId));
+      if (!selectedOrder) throw new Error("Orden no encontrada");
 
-    setOrderId("");
-    setDescription("");
-    setSelectedProducts([]);
-    setAvailableProducts([]);
-    onOpenChange(false);
+      await createReturn({
+        orderId: selectedOrder.order_number,
+        items: selectedProducts.map(p => ({
+          productId: p.id,
+          quantity: p.quantityToReturn,
+          reason: p.reason
+        })),
+        reason: description || "Solicitud de devolución",
+        notes: description
+      });
+
+      toast({
+        title: "Devolución creada",
+        description: `Se ha creado la solicitud de devolución para ${selectedProducts.length} producto(s) de la orden ${selectedOrder.order_number}`,
+      });
+
+      setOrderId("");
+      setDescription("");
+      setSelectedProducts([]);
+      setAvailableProducts([]);
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al crear la devolución",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -150,9 +209,9 @@ export const CreateReturnModal = ({ open, onOpenChange }: CreateReturnModalProps
                 <SelectValue placeholder="Seleccionar orden" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-purple-700">
-                {mockOrderProducts.map((order) => (
-                  <SelectItem key={order.orderId} value={order.orderId}>
-                    {order.orderId} ({order.products.length} productos)
+                {orders.map((order) => (
+                  <SelectItem key={order.id} value={order.id.toString()}>
+                    {order.order_number} ({order.items_count} productos)
                   </SelectItem>
                 ))}
               </SelectContent>

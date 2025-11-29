@@ -21,6 +21,16 @@ export class OrdersController {
         }
     }
 
+    async getOrderById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = parseInt(req.params.id);
+            const order = await ordersService.getOrderById(id);
+            sendSuccess(res, order);
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async getStats(req: Request, res: Response, next: NextFunction) {
         try {
             const stats = await ordersService.getStats();

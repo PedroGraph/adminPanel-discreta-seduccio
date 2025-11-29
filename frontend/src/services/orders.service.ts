@@ -13,6 +13,19 @@ export interface Order {
     address?: string;
     payment_method?: string;
     tracking_number?: string;
+    items?: OrderItem[];
+}
+
+export interface OrderItem {
+    id: number;
+    productId: number;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    product: {
+        name: string;
+        price: number;
+    };
 }
 
 export interface OrdersStats {
@@ -65,6 +78,20 @@ export const getOrdersStats = async (): Promise<OrdersStats> => {
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Error al obtener las estadísticas');
+    }
+
+    const result = await response.json();
+    return result.data;
+};
+
+export const getOrderById = async (id: number): Promise<Order> => {
+    const response = await fetch(`${API_URL}/orders/${id}`, {
+        credentials: 'include',
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error al obtener la orden');
     }
 
     const result = await response.json();

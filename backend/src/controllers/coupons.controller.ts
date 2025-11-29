@@ -33,7 +33,7 @@ export class CouponsController {
     async createCoupon(req: Request, res: Response, next: NextFunction) {
         try {
             const coupon = await couponsService.createCoupon(req.body);
-            sendSuccess(res, coupon, 201);
+            sendSuccess(res, coupon, '', 201);
         } catch (error) {
             next(error);
         }
@@ -43,7 +43,7 @@ export class CouponsController {
         try {
             const id = parseInt(req.params.id);
             const coupon = await couponsService.updateCoupon(id, req.body);
-            sendSuccess(res, coupon);
+            sendSuccess(res, coupon, '', 200);
         } catch (error) {
             next(error);
         }
@@ -53,7 +53,7 @@ export class CouponsController {
         try {
             const id = parseInt(req.params.id);
             await couponsService.deleteCoupon(id);
-            sendSuccess(res, { message: 'Coupon deleted successfully' });
+            sendSuccess(res, { message: 'Coupon deleted successfully' }, '', 200);
         } catch (error) {
             next(error);
         }

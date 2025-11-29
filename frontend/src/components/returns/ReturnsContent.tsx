@@ -6,9 +6,12 @@ import { ReturnsTable } from "./ReturnsTable";
 import { CreateReturnModal } from "./CreateReturnModal";
 import { ReturnDetailModal } from "./ReturnDetailModal";
 import { Return } from "@/types/return";
+import { updateReturnStatus } from "@/services/returns.service";
+import { useToast } from "@/hooks/use-toast";
 
 export const ReturnsContent = () => {
-  const { returns, isLoading } = useReturns();
+  const { returns, isLoading, refetch } = useReturns();
+  const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -33,14 +36,26 @@ export const ReturnsContent = () => {
     setIsDetailModalOpen(true);
   };
 
-  const handleApprove = (returnItem: Return) => {
-    console.log("Aprobar devolución:", returnItem.id);
-    // Implementar lógica de aprobación
+  const handleApprove = async (returnItem: Return) => {
+    try {
+      await updateReturnStatus(returnItem.id, "Aprobado");
+      toast({ title: "Devolución aprobada" });
+      refetch();
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Error al aprobar la devolución", variant: "destructive" });
+    }
   };
 
-  const handleReject = (returnItem: Return) => {
-    console.log("Rechazar devolución:", returnItem.id);
-    // Implementar lógica de rechazo
+  const handleReject = async (returnItem: Return) => {
+    try {
+      await updateReturnStatus(returnItem.id, "Rechazado");
+      toast({ title: "Devolución rechazada" });
+      refetch();
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Error al rechazar la devolución", variant: "destructive" });
+    }
   };
 
   const handleStatusFilter = (status: string) => {
