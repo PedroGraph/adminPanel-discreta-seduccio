@@ -66,72 +66,31 @@ export class OrdersService {
                     andConditions.push({
                         createdAt: {
                             gte: lastMonth
-                        }
-                    });
-                }
-            }
-
-            const orders = await prisma.order.findMany({
-                where,
-                include: {
-                    customer: {
-                        select: {
-                            name: true,
-                            email: true
-                        }
-                    },
-                    items: true
-                },
-                orderBy: { createdAt: 'desc' },
-                skip,
-                take: limit
-            });
-
-            const total = await prisma.order.count({ where });
-
-            // Map to frontend expected format if necessary, or return as is
-            // Frontend expects: id, customer_name, total_amount, status, created_at, items_count
-            const mappedOrders = orders.map(order => ({
-                id: order.id,
-                order_number: order.orderNumber,
-                customer_name: order.customer?.name || 'Guest',
-                customer_email: order.customer?.email,
-                total_amount: Number(order.totalAmount),
-                status: order.status,
-                created_at: order.createdAt,
-                items_count: order.items.length
-            }));
-
-            return {
-                orders: mappedOrders,
-                total,
-                page,
-                limit,
                 totalPages: Math.ceil(total / limit)
-            };
+                        };
 
-        } catch (error) {
-            logger.error('Error getting orders:', error);
-            throw error;
-        }
-    }
+                    } catch (error) {
+                        logger.error('Error getting orders:', error);
+                        throw error;
+                    }
+                }
 
     async getStats() {
-        try {
-            const total = await prisma.order.count();
-            const pending = await prisma.order.count({ where: { status: 'pending' } });
-            const completed = await prisma.order.count({ where: { status: 'delivered' } }); // Assuming delivered = completed
-            const cancelled = await prisma.order.count({ where: { status: 'cancelled' } });
+                    try {
+                        const total = await prisma.order.count();
+                        const pending = await prisma.order.count({ where: { status: 'pending' } });
+                        const completed = await prisma.order.count({ where: { status: 'delivered' } }); // Assuming delivered = completed
+                        const cancelled = await prisma.order.count({ where: { status: 'cancelled' } });
 
-            return {
-                total,
-                pending,
-                completed,
-                cancelled
-            };
-        } catch (error) {
-            logger.error('Error getting order stats:', error);
-            throw error;
-        }
-    }
-}
+                        return {
+                            total,
+                            pending,
+                            completed,
+                            cancelled
+                        };
+                    } catch (error) {
+                        logger.error('Error getting order stats:', error);
+                        throw error;
+                    }
+                }
+            }

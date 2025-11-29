@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Package, MapPin, Calendar, User, CreditCard } from "lucide-react";
-import { Order } from "@/types/order";
+import { Order } from "@/services/orders.service";
 
 interface OrderDetailModalProps {
   open: boolean;
@@ -22,13 +22,13 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Completado":
+      case "delivered":
         return "border-green-600 text-green-400 bg-green-900/20";
-      case "Enviado":
+      case "shipped":
         return "border-blue-600 text-blue-400 bg-blue-900/20";
-      case "Procesando":
+      case "processing":
         return "border-yellow-600 text-yellow-400 bg-yellow-900/20";
-      case "Pendiente":
+      case "pending":
         return "border-orange-600 text-orange-400 bg-orange-900/20";
       default:
         return "border-red-600 text-red-400 bg-red-900/20";
@@ -44,7 +44,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
             Detalles de la Orden {order.id}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Estado y información básica */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -64,15 +64,15 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
                 </div>
                 <div>
                   <span className="text-purple-400 text-sm">Fecha:</span>
-                  <span className="text-purple-100 ml-2">{order.order_date}</span>
+                  <span className="text-purple-100 ml-2">{new Date(order.created_at).toLocaleDateString()}</span>
                 </div>
                 <div>
                   <span className="text-purple-400 text-sm">Items:</span>
-                  <span className="text-purple-100 ml-2">{order.items}</span>
+                  <span className="text-purple-100 ml-2">{order.items_count}</span>
                 </div>
                 <div>
                   <span className="text-purple-400 text-sm">Total:</span>
-                  <span className="text-purple-100 ml-2 font-semibold">${order.total.toFixed(2)}</span>
+                  <span className="text-purple-100 ml-2 font-semibold">${Number(order.total_amount).toFixed(2)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -134,7 +134,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
               </CardContent>
             </Card>
 
-            {order.status === "Enviado" && order.tracking_number && (
+            {order.status === "shipped" && order.tracking_number && (
               <Card className="bg-gray-700 border-purple-600">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-purple-200 text-sm">Número de Seguimiento</CardTitle>

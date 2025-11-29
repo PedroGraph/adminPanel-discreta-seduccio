@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Truck, FileText } from "lucide-react";
-import { Order } from "@/types/order";
+import { Order } from "@/services/orders.service";
 import { useMemo } from "react";
 
 interface OrdersTableProps {
@@ -26,7 +26,7 @@ export const OrdersTable = ({ orders, onViewDetails, onViewTracking }: OrdersTab
       ["ID", "Cliente", "Email", "Fecha", "Total", "Estado", "Items"],
       ...orders.map(o =>
         [
-          o.id, o.customer_name, o.customer_email, o.order_date, o.total, o.status, o.items,
+          o.id, o.customer_name, o.customer_email, o.created_at, o.total_amount, o.status, o.items_count,
         ]
       ),
     ].map(arr => arr.join(",")).join("\n");
@@ -68,17 +68,17 @@ export const OrdersTable = ({ orders, onViewDetails, onViewTracking }: OrdersTab
                   <div className="text-sm text-purple-400 hidden sm:block">{order.customer_email}</div>
                 </div>
               </TableCell>
-              <TableCell className="text-purple-100 hidden md:table-cell">{order.order_date}</TableCell>
-              <TableCell className="text-purple-100 hidden lg:table-cell">{order.items}</TableCell>
-              <TableCell className="font-medium text-purple-100">${order.total.toFixed(2)}</TableCell>
+              <TableCell className="text-purple-100 hidden md:table-cell">{new Date(order.created_at).toLocaleDateString()}</TableCell>
+              <TableCell className="text-purple-100 hidden lg:table-cell">{order.items_count}</TableCell>
+              <TableCell className="font-medium text-purple-100">${Number(order.total_amount).toFixed(2)}</TableCell>
               <TableCell>
-                <Badge 
+                <Badge
                   variant="outline"
                   className={
-                    order.status === "Completado" ? "border-green-600 text-green-400 bg-green-900/20" :
-                    order.status === "Enviado" ? "border-blue-600 text-blue-400 bg-blue-900/20" :
-                    order.status === "Procesando" ? "border-yellow-600 text-yellow-400 bg-yellow-900/20" :
-                    order.status === "Pendiente" ? "border-orange-600 text-orange-400 bg-orange-900/20" : "border-red-600 text-red-400 bg-red-900/20"
+                    order.status === "delivered" ? "border-green-600 text-green-400 bg-green-900/20" :
+                      order.status === "shipped" ? "border-blue-600 text-blue-400 bg-blue-900/20" :
+                        order.status === "processing" ? "border-yellow-600 text-yellow-400 bg-yellow-900/20" :
+                          order.status === "pending" ? "border-orange-600 text-orange-400 bg-orange-900/20" : "border-red-600 text-red-400 bg-red-900/20"
                   }
                 >
                   {order.status}
@@ -86,17 +86,17 @@ export const OrdersTable = ({ orders, onViewDetails, onViewTracking }: OrdersTab
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="bg-gray-800 text-white hover:bg-purple-700 hover:text-white transition-colors"
                     onClick={() => onViewDetails(order)}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="bg-gray-800 text-white hover:bg-purple-700 hover:text-white transition-colors"
                     onClick={() => onViewTracking(order)}
                   >

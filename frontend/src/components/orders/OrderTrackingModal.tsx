@@ -7,7 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Truck, Package, MapPin, CheckCircle, Clock } from "lucide-react";
-import { Order } from "@/types/order";
+import { Order } from "@/services/orders.service";
 
 interface OrderTrackingModalProps {
   open: boolean;
@@ -15,51 +15,56 @@ interface OrderTrackingModalProps {
   order: Order | null;
 }
 
-const trackingSteps = [
-  {
-    id: 1,
-    title: "Pedido Confirmado",
-    description: "Tu pedido ha sido confirmado y está siendo preparado",
-    icon: CheckCircle,
-    completed: true,
-    date: "2024-01-15 10:30"
-  },
-  {
-    id: 2,
-    title: "En Preparación",
-    description: "Estamos preparando tu pedido en nuestro almacén",
-    icon: Package,
-    completed: true,
-    date: "2024-01-15 14:20"
-  },
-  {
-    id: 3,
-    title: "Enviado",
-    description: "Tu pedido ha sido enviado y está en camino",
-    icon: Truck,
-    completed: true,
-    date: "2024-01-16 09:15"
-  },
-  {
-    id: 4,
-    title: "En Tránsito",
-    description: "Tu pedido está siendo transportado a su destino",
-    icon: MapPin,
-    completed: false,
-    date: "Estimado: 2024-01-17 16:00"
-  },
-  {
-    id: 5,
-    title: "Entregado",
-    description: "Tu pedido ha sido entregado exitosamente",
-    icon: CheckCircle,
-    completed: false,
-    date: "Pendiente"
-  }
-];
+const getTrackingSteps = (order: Order) => {
+  const steps = [
+    {
+      id: 1,
+      title: "Pedido Confirmado",
+      description: "Tu pedido ha sido confirmado y está siendo preparado",
+      icon: CheckCircle,
+      completed: true,
+      date: new Date(order.created_at).toLocaleString()
+    },
+    {
+      id: 2,
+      title: "En Preparación",
+      description: "Estamos preparando tu pedido en nuestro almacén",
+      icon: Package,
+      completed: ["processing", "shipped", "delivered"].includes(order.status),
+      date: ["processing", "shipped", "delivered"].includes(order.status) ? "Completado" : "Pendiente"
+    },
+    {
+      id: 3,
+      title: "Enviado",
+      description: "Tu pedido ha sido enviado y está en camino",
+      icon: Truck,
+      completed: ["shipped", "delivered"].includes(order.status),
+      date: ["shipped", "delivered"].includes(order.status) ? (order.tracking_number ? `Tracking: ${order.tracking_number}` : "Enviado") : "Pendiente"
+    },
+    {
+      id: 4,
+      title: "En Tránsito",
+      description: "Tu pedido está siendo transportado a su destino",
+      icon: MapPin,
+      completed: ["delivered"].includes(order.status), // Simplified logic
+      date: "En camino"
+    },
+    {
+      id: 5,
+      title: "Entregado",
+      description: "Tu pedido ha sido entregado exitosamente",
+      icon: CheckCircle,
+      completed: order.status === "delivered",
+      date: order.status === "delivered" ? "Entregado" : "Pendiente"
+    }
+  ];
+  return steps;
+};
 
 export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingModalProps) => {
   if (!order) return null;
+
+  const trackingSteps = getTrackingSteps(order);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,21 +75,21 @@ export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingM
             Seguimiento de la Orden {order.id}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="bg-gray-700 p-4 rounded-lg border border-purple-600">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-purple-200 font-semibold">{order.customer_name}</h3>
-                <p className="text-purple-400 text-sm">Fecha del pedido: {order.order_date}</p>
+                <p className="text-purple-400 text-sm">Fecha del pedido: {new Date(order.created_at).toLocaleDateString()}</p>
               </div>
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className={
-                  order.status === "Completado" ? "border-green-600 text-green-400 bg-green-900/20" :
-                  order.status === "Enviado" ? "border-blue-600 text-blue-400 bg-blue-900/20" :
-                  order.status === "Procesando" ? "border-yellow-600 text-yellow-400 bg-yellow-900/20" :
-                  order.status === "Pendiente" ? "border-orange-600 text-orange-400 bg-orange-900/20" : "border-red-600 text-red-400 bg-red-900/20"
+                  order.status === "delivered" ? "border-green-600 text-green-400 bg-green-900/20" :
+                    order.status === "shipped" ? "border-blue-600 text-blue-400 bg-blue-900/20" :
+                      order.status === "processing" ? "border-yellow-600 text-yellow-400 bg-yellow-900/20" :
+                        order.status === "pending" ? "border-orange-600 text-orange-400 bg-orange-900/20" : "border-red-600 text-red-400 bg-red-900/20"
                 }
               >
                 {order.status}
@@ -96,7 +101,7 @@ export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingM
             {trackingSteps.map((step, index) => {
               const Icon = step.icon;
               const isLast = index === trackingSteps.length - 1;
-              
+
               return (
                 <div key={step.id} className="relative">
                   <Card className={`bg-gray-700 border-purple-600 ${step.completed ? 'border-green-600' : ''}`}>
@@ -105,7 +110,7 @@ export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingM
                         <div className={`p-2 rounded-full ${step.completed ? 'bg-green-900/20 text-green-400' : 'bg-gray-600 text-gray-400'}`}>
                           <Icon className="h-5 w-5" />
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h4 className={`font-medium ${step.completed ? 'text-green-400' : 'text-purple-300'}`}>
@@ -119,18 +124,18 @@ export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingM
                             {step.description}
                           </p>
                         </div>
-                        
+
                         {step.completed && (
                           <CheckCircle className="h-5 w-5 text-green-400" />
                         )}
-                        
+
                         {!step.completed && step.id === 4 && (
                           <Clock className="h-5 w-5 text-yellow-400" />
                         )}
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   {!isLast && (
                     <div className={`w-0.5 h-4 ml-6 ${step.completed ? 'bg-green-600' : 'bg-gray-600'}`} />
                   )}
