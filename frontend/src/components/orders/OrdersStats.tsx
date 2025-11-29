@@ -17,9 +17,9 @@ interface OrdersStatsProps {
 export const OrdersStats = ({ stats, onStatusFilter, currentFilter, isLoading }: OrdersStatsProps) => {
   const statCards = [
     { title: "Total Órdenes", value: stats.total, status: "all", color: "purple" },
-    { title: "Pendientes", value: stats.pending, status: "Pendiente", color: "blue" },
-    { title: "Completadas", value: stats.completed, status: "Completado", color: "green" },
-    { title: "Canceladas", value: stats.cancelled, status: "Cancelado", color: "red" }
+    { title: "Pendientes", value: stats.pending, status: "pending", color: "blue" },
+    { title: "Completadas", value: stats.completed, status: "delivered", color: "green" },
+    { title: "Canceladas", value: stats.cancelled, status: "cancelled", color: "red" }
   ];
 
   if (isLoading) {
@@ -33,42 +33,39 @@ export const OrdersStats = ({ stats, onStatusFilter, currentFilter, isLoading }:
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       {statCards.map((stat) => (
-        <Card 
+        <Card
           key={stat.status}
-          className={`cursor-pointer transition-all duration-200 ${
-            stat.color === "purple" 
-              ? `bg-gray-700 border-purple-700 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-purple-500' : ''}` 
-              : stat.color === "blue" 
-              ? `bg-gray-700 border-blue-600 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-blue-500' : ''}` 
-              : stat.color === "green" 
-              ? `bg-gray-700 border-green-600 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-green-500' : ''}` 
-              : `bg-gray-700 border-red-600 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-red-500' : ''}`
-          }`}
+          className={`cursor-pointer transition-all duration-200 ${stat.color === "purple"
+              ? `bg-gray-700 border-purple-700 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-purple-500' : ''}`
+              : stat.color === "blue"
+                ? `bg-gray-700 border-blue-600 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-blue-500' : ''}`
+                : stat.color === "green"
+                  ? `bg-gray-700 border-green-600 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-green-500' : ''}`
+                  : `bg-gray-700 border-red-600 hover:bg-gray-600 ${currentFilter === stat.status ? 'ring-2 ring-red-500' : ''}`
+            }`}
           onClick={() => onStatusFilter(stat.status)}
         >
           <CardHeader className="pb-2">
-            <CardTitle className={`text-sm font-medium ${
-              stat.color === "purple" 
-                ? "text-purple-300" 
-                : stat.color === "blue" 
-                ? "text-blue-300" 
-                : stat.color === "green" 
-                ? "text-green-300" 
-                : "text-red-300"
-            }`}>
+            <CardTitle className={`text-sm font-medium ${stat.color === "purple"
+                ? "text-purple-300"
+                : stat.color === "blue"
+                  ? "text-blue-300"
+                  : stat.color === "green"
+                    ? "text-green-300"
+                    : "text-red-300"
+              }`}>
               {stat.title}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${
-              stat.color === "purple" 
-                ? "text-purple-100" 
-                : stat.color === "blue" 
-                ? "text-blue-400" 
-                : stat.color === "green" 
-                ? "text-green-400" 
-                : "text-red-400"
-            }`}>
+            <div className={`text-2xl font-bold ${stat.color === "purple"
+                ? "text-purple-100"
+                : stat.color === "blue"
+                  ? "text-blue-400"
+                  : stat.color === "green"
+                    ? "text-green-400"
+                    : "text-red-400"
+              }`}>
               {stat.value}
             </div>
           </CardContent>

@@ -7,56 +7,24 @@ import { OrderDetailModal } from "./OrderDetailModal";
 import { OrderTrackingModal } from "./OrderTrackingModal";
 
 export const OrdersContent = () => {
-  const { orders, isLoading } = useOrders();
+  const { orders, isLoading, stats, filters, setFilters } = useOrders();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
 
-  // Calculate stats
-  const stats = useMemo(() => {
-    return {
-      total: orders.length,
-      pending: orders.filter((o) => o.status === "Pendiente").length,
-      completed: orders.filter((o) => o.status === "Completado").length,
-      cancelled: orders.filter((o) => o.status === "Cancelado").length,
-    };
-  }, [orders]);
+  // Handlers for filters
+  const handleSearchChange = (value: string) => {
+    setFilters({ search: value, page: 1 });
+  };
 
-  // Filter orders
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const matchesSearch =
-        order.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-      
-      let matchesDate = true;
-      if (dateFilter !== "all") {
-        const orderDate = new Date(order.created_at);
-        const today = new Date();
-        const diffTime = today.getTime() - orderDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const handleStatusChange = (value: string) => {
+    setFilters({ status: value, page: 1 });
+  };
 
-        switch (dateFilter) {
-          case "today":
-            matchesDate = diffDays === 0;
-            break;
-          case "week":
-            matchesDate = diffDays <= 7;
-            break;
-          case "month":
-            matchesDate = diffDays <= 30;
-            break;
-        }
-      }
-
-      return matchesSearch && matchesStatus && matchesDate;
-    });
-  }, [orders, searchTerm, statusFilter, dateFilter]);
+  const handleDateChange = (value: string) => {
+    setFilters({ date: value, page: 1 });
+  };
 
   const handleViewDetails = (order: any) => {
     setSelectedOrder(order);
@@ -69,7 +37,7 @@ export const OrdersContent = () => {
   };
 
   const handleStatusFilter = (status: string) => {
-    setStatusFilter(status);
+    setFilters({ status: status, page: 1 });
   };
 
   return (
@@ -77,21 +45,21 @@ export const OrdersContent = () => {
       <OrdersStats
         stats={stats}
         onStatusFilter={handleStatusFilter}
-        currentFilter={statusFilter}
+        currentFilter={filters.status}
         isLoading={isLoading}
       />
 
       <OrdersTableFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
+        searchTerm={filters.search}
+        setSearchTerm={handleSearchChange}
+        statusFilter={filters.status}
+        setStatusFilter={handleStatusChange}
+        dateFilter={filters.date}
+        setDateFilter={handleDateChange}
       />
 
       <OrdersTable
-        orders={filteredOrders}
+        orders={orders}
         onViewDetails={handleViewDetails}
         onViewTracking={handleViewTracking}
       />
