@@ -66,31 +66,85 @@ export class OrdersService {
                     andConditions.push({
                         createdAt: {
                             gte: lastMonth
-                totalPages: Math.ceil(total / limit)
-                        };
-
-                    } catch (error) {
-                        logger.error('Error getting orders:', error);
-                        throw error;
-                    }
-                }
-
-    async getStats() {
-                    try {
-                        const total = await prisma.order.count();
-                        const pending = await prisma.order.count({ where: { status: 'pending' } });
-                        const completed = await prisma.order.count({ where: { status: 'delivered' } }); // Assuming delivered = completed
-                        const cancelled = await prisma.order.count({ where: { status: 'cancelled' } });
-
-                        return {
-                            total,
-                            pending,
-                            completed,
-                            cancelled
-                        };
-                    } catch (error) {
-                        logger.error('Error getting order stats:', error);
-                        throw error;
-                    }
+                        }
+                    });
                 }
             }
+
+            const orders = await prisma.order.findMany({
+                where,
+                include: {
+                    customer: {
+                        select: {
+                            name: true,
+                            email: true,
+                            phone: true
+                        }
+                    },
+                    items: true,
+                    shippingAddress: true,
+                    shipments: true
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            });
+
+            const total = await prisma.order.count({ where });
+
+            const mappedOrders = orders.map(order => {
+                const address = order.shippingAddress
+                    ? `${order.shippingAddress.addressLine1}, ${order.shippingAddress.city}, ${order.shippingAddress.country}`
+                    : 'No address';
+
+                const trackingNumber = order.shipments?.[0]?.trackingNumber || null;
+
+                return {
+                    id: order.id,
+                    order_number: order.orderNumber,
+                    customer_name: order.customer?.name || 'Guest',
+                    customer_email: order.customer?.email,
+                    phone: order.customer?.phone,
+                    total_amount: Number(order.totalAmount),
+                    status: order.status,
+                    created_at: order.createdAt,
+                    items_count: order.items.length,
+                    address,
+                    payment_method: order.paymentMethod,
+                    tracking_number: trackingNumber
+                };
+            });
+
+            return {
+                orders: mappedOrders,
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            };
+
+        } catch (error) {
+            logger.error('Error getting orders:', error);
+            throw error;
+        }
+    }
+
+    async getStats() {
+        try {
+            const total = await prisma.order.count();
+            const pending = await prisma.order.count({ where: { status: 'pending' } });
+            const completed = await prisma.order.count({ where: { status: 'delivered' } });
+            const cancelled = await prisma.order.count({ where: { status: 'cancelled' } });
+
+            return {
+                total,
+                pending,
+                completed,
+                cancelled
+            };
+        } catch (error) {
+            logger.error('Error getting order stats:', error);
+            throw error;
+        }
+    }
+}

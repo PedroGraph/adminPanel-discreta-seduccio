@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import type { Coupon } from "@/types/coupon";
+import type { Coupon } from "@/services/coupons.service";
 
 interface CouponsTableProps {
   coupons: Coupon[];
@@ -30,12 +30,12 @@ export const CouponsTable = ({ coupons, onViewDetails, onEdit, onDelete }: Coupo
 
   const getTypeBadge = (type: string) => {
     return (
-      <Badge 
+      <Badge
         variant="outline"
         className="border-purple-600 text-purple-400 bg-purple-900/20"
       >
-        {type === 'percentage' ? 'Porcentaje' : 
-         type === 'fixed' ? 'Fijo' : 'Envío Gratis'}
+        {type === 'percentage' ? 'Porcentaje' :
+          type === 'fixed' ? 'Fijo' : 'Envío Gratis'}
       </Badge>
     );
   };
@@ -83,8 +83,8 @@ export const CouponsTable = ({ coupons, onViewDetails, onEdit, onDelete }: Coupo
               <TableCell className="text-purple-100">
                 {coupon.usage_count}/{coupon.usage_limit}
                 <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
-                  <div 
-                    className="bg-purple-500 h-2 rounded-full" 
+                  <div
+                    className="bg-purple-500 h-2 rounded-full"
                     style={{ width: `${getUsagePercentage(coupon.usage_count, coupon.usage_limit)}%` }}
                   ></div>
                 </div>

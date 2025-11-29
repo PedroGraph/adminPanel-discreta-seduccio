@@ -13,7 +13,7 @@ import { CouponDetailUsage } from "./CouponDetailUsage";
 import { CouponDetailDates } from "./CouponDetailDates";
 import { CouponDetailCategory } from "./CouponDetailCategory";
 import { CouponDetailActions } from "./CouponDetailActions";
-import type { Coupon } from "@/types/coupon";
+import type { Coupon } from "@/services/coupons.service";
 
 interface CouponDetailModalProps {
   coupon: Coupon | null;
@@ -44,19 +44,19 @@ export const CouponDetailModal = ({
         <div className="space-y-6">
           <CouponDetailInfo id={coupon.id} name={coupon.name} />
 
-          <CouponDetailDiscount 
+          <CouponDetailDiscount
             type={coupon.type}
             value={coupon.value}
             minOrder={coupon.min_order}
             maxDiscount={coupon.max_discount}
           />
 
-          <CouponDetailUsage 
+          <CouponDetailUsage
             usageCount={coupon.usage_count}
             usageLimit={coupon.usage_limit}
           />
 
-          <CouponDetailDates 
+          <CouponDetailDates
             startDate={coupon.start_date}
             endDate={coupon.end_date}
           />
@@ -65,7 +65,7 @@ export const CouponDetailModal = ({
 
           <Separator className="bg-purple-700" />
 
-          <CouponDetailActions 
+          <CouponDetailActions
             coupon={coupon}
             onEdit={onEdit}
             onDelete={onDelete}

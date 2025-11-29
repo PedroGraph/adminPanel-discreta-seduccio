@@ -9,7 +9,6 @@ import { FileText } from "lucide-react";
 
 export const CouponsContent = () => {
   const {
-    filteredCoupons,
     coupons,
     stats,
     searchTerm,
@@ -31,7 +30,7 @@ export const CouponsContent = () => {
   const handleExportCSV = () => {
     const csv = [
       ["ID", "Nombre", "Tipo", "Valor", "Mín. Pedido", "Máx. Descuento", "Estado"],
-      ...filteredCoupons.map(c =>
+      ...coupons.map(c =>
         [
           c.id, c.name, c.type, c.value, c.min_order, c.max_discount, c.status,
         ]
@@ -77,12 +76,12 @@ export const CouponsContent = () => {
       <Card className="bg-gray-700 border-purple-700">
         <CardHeader>
           <CardTitle className="text-purple-200">
-            Cupones ({filteredCoupons.length} de {coupons.length})
+            Cupones ({coupons.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <CouponsTable
-            coupons={filteredCoupons}
+            coupons={coupons}
             onViewDetails={handleViewDetails}
             onEdit={handleEdit}
             onDelete={handleDelete}

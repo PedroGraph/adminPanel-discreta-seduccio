@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import type { Coupon } from "@/types/coupon";
+import type { Coupon } from "@/services/coupons.service";
 
 interface CouponDetailActionsProps {
   coupon: Coupon;

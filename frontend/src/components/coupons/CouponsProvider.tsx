@@ -1,12 +1,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Coupon, CouponStats } from "@/types/coupon";
+import { getCoupons, getCouponsStats, deleteCoupon, type Coupon, type CouponStats } from "@/services/coupons.service";
 
 interface CouponsContextType {
   coupons: Coupon[];
-  filteredCoupons: Coupon[];
   stats: CouponStats;
   searchTerm: string;
   statusFilter: string;
@@ -41,7 +39,6 @@ interface CouponsProviderProps {
 
 export const CouponsProvider = ({ children }: CouponsProviderProps) => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
   const [stats, setStats] = useState<CouponStats>({
     total: 0,
     active: 0,
@@ -60,25 +57,16 @@ export const CouponsProvider = ({ children }: CouponsProviderProps) => {
 
   useEffect(() => {
     fetchCoupons();
-  }, []);
-
-  useEffect(() => {
-    filterCoupons();
-  }, [coupons, searchTerm, statusFilter, typeFilter]);
+  }, [searchTerm, statusFilter, typeFilter]);
 
   const fetchCoupons = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const result = await getCoupons({ search: searchTerm, status: statusFilter, type: typeFilter });
+      const statsResult = await getCouponsStats();
 
-      if (error) throw error;
-
-      const typedData = (data || []) as Coupon[];
-      setCoupons(typedData);
-      calculateStats(typedData);
+      setCoupons(result.coupons);
+      setStats(statsResult);
     } catch (error) {
       console.error('Error fetching coupons:', error);
       toast({
@@ -89,44 +77,6 @@ export const CouponsProvider = ({ children }: CouponsProviderProps) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const calculateStats = (couponsData: Coupon[]) => {
-    const total = couponsData.length;
-    const active = couponsData.filter(c => c.status === 'active').length;
-    const inactive = couponsData.filter(c => c.status === 'inactive').length;
-    const expired = couponsData.filter(c => c.status === 'expired').length;
-    const totalUsage = couponsData.reduce((sum, c) => sum + (c.usage_count || 0), 0);
-    
-    const totalSavings = couponsData.reduce((sum, c) => {
-      const usage = c.usage_count || 0;
-      const avgSaving = c.type === 'percentage' ? c.value : c.value;
-      return sum + (usage * avgSaving);
-    }, 0);
-
-    setStats({ total, active, inactive, expired, totalUsage, totalSavings });
-  };
-
-  const filterCoupons = () => {
-    let filtered = coupons;
-
-    if (searchTerm) {
-      filtered = filtered.filter(coupon =>
-        coupon.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        coupon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (coupon.category && coupon.category.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(coupon => coupon.status === statusFilter);
-    }
-
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(coupon => coupon.type === typeFilter);
-    }
-
-    setFilteredCoupons(filtered);
   };
 
   const handleViewDetails = (coupon: Coupon) => {
@@ -143,12 +93,7 @@ export const CouponsProvider = ({ children }: CouponsProviderProps) => {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('coupons')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await deleteCoupon(id);
 
       toast({
         title: "Éxito",
@@ -168,7 +113,6 @@ export const CouponsProvider = ({ children }: CouponsProviderProps) => {
 
   const value: CouponsContextType = {
     coupons,
-    filteredCoupons,
     stats,
     searchTerm,
     statusFilter,
