@@ -10,6 +10,7 @@ import ordersRoutes from './orders.routes.js';
 import couponsRoutes from './coupons.routes.js';
 import categoriesRoutes from './categories.routes.js';
 import returnsRoutes from './returns.routes.js';
+import reportsRoutes from './reports.routes.js';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/analytics', analyticsRoutes);
 router.use('/orders', ordersRoutes);
 router.use('/returns', returnsRoutes);
 router.use('/coupons', couponsRoutes);
+router.use('/reports', reportsRoutes);
 
 export default router;

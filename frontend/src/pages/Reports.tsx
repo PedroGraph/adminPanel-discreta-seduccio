@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FileText, 
-  Download, 
-  Calendar, 
+import {
+  FileText,
+  Download,
+  Calendar,
   TrendingUp,
   Users,
   ShoppingCart,
@@ -23,22 +23,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useReports } from "@/hooks/useReports";
 import { CreateScheduledReportModal } from "@/components/reports/CreateScheduledReportModal";
 
-const retentionData = [
-  { month: 'Ene', nuevos: 120, retenidos: 85, tasa: 70.8 },
-  { month: 'Feb', nuevos: 150, retenidos: 112, tasa: 74.7 },
-  { month: 'Mar', nuevos: 180, retenidos: 142, tasa: 78.9 },
-  { month: 'Abr', nuevos: 220, retenidos: 168, tasa: 76.4 },
-  { month: 'May', nuevos: 250, retenidos: 195, tasa: 78.0 },
-  { month: 'Jun', nuevos: 280, retenidos: 224, tasa: 80.0 },
-];
-
 export const Reports = () => {
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [reportType, setReportType] = useState("sales");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  
+
   const {
     scheduledReports,
+    isLoadingReports,
+    retentionData,
     isGenerating,
     exportReport,
     runScheduledReport,
@@ -52,14 +45,16 @@ export const Reports = () => {
       const endDate = new Date();
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - 1);
-      
+
       setDateRange({
         start: startDate.toISOString().split('T')[0],
         end: endDate.toISOString().split('T')[0]
       });
     }
-    
-    await exportReport(reportType, format, dateRange);
+
+    const startDate = dateRange.start ? new Date(dateRange.start) : undefined;
+    const endDate = dateRange.end ? new Date(dateRange.end) : undefined;
+    await exportReport(reportType, format as 'excel' | 'pdf' | 'csv', startDate, endDate);
   };
 
   const getStatusColor = (status: string) => {
@@ -102,7 +97,7 @@ export const Reports = () => {
               <Input
                 type="date"
                 value={dateRange.start}
-                onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
                 className="bg-gray-800 border-gray-600 text-white"
               />
             </div>
@@ -111,21 +106,21 @@ export const Reports = () => {
               <Input
                 type="date"
                 value={dateRange.end}
-                onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
                 className="bg-gray-800 border-gray-600 text-white"
               />
             </div>
             <div className="flex items-end gap-2">
-              <Button 
-                onClick={() => handleExportData('excel')} 
+              <Button
+                onClick={() => handleExportData('excel')}
                 className="bg-green-700 hover:bg-green-600 text-white"
                 disabled={isGenerating}
               >
                 <FileText className="h-4 w-4 mr-2" />
                 {isGenerating ? 'Generando...' : 'Excel'}
               </Button>
-              <Button 
-                onClick={() => handleExportData('pdf')} 
+              <Button
+                onClick={() => handleExportData('pdf')}
                 className="bg-red-700 hover:bg-red-600 text-white"
                 disabled={isGenerating}
               >
@@ -148,17 +143,16 @@ export const Reports = () => {
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="month" stroke="#9CA3AF" />
               <YAxis stroke="#9CA3AF" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#374151', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#374151',
                   border: '1px solid #6B7280',
                   borderRadius: '6px',
                   color: '#F3F4F6'
-                }} 
+                }}
               />
-              <Line type="monotone" dataKey="nuevos" stroke="#60A5FA" strokeWidth={2} name="Nuevos Clientes" />
-              <Line type="monotone" dataKey="retenidos" stroke="#34D399" strokeWidth={2} name="Clientes Retenidos" />
-              <Line type="monotone" dataKey="tasa" stroke="#F59E0B" strokeWidth={2} name="Tasa de Retención %" />
+              <Line type="monotone" dataKey="newCustomers" stroke="#60A5FA" strokeWidth={2} name="Nuevos Clientes" />
+              <Line type="monotone" dataKey="retentionRate" stroke="#F59E0B" strokeWidth={2} name="Tasa de Retención %" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -171,7 +165,7 @@ export const Reports = () => {
             <Calendar className="h-5 w-5" />
             Reportes Programados
           </CardTitle>
-          <Button 
+          <Button
             className="bg-purple-700 hover:bg-purple-600 text-white"
             onClick={() => setShowCreateModal(true)}
           >
@@ -208,9 +202,9 @@ export const Reports = () => {
                     <td className="p-3 text-center text-gray-300">{report.format}</td>
                     <td className="p-3 text-center">
                       <div className="flex justify-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
                           onClick={() => runScheduledReport(report.id)}
                           disabled={isGenerating}
@@ -218,9 +212,9 @@ export const Reports = () => {
                           <Play className="h-3 w-3 mr-1" />
                           Ejecutar
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
                           onClick={() => toggleReportStatus(report.id)}
                         >

@@ -120,6 +120,30 @@ enum SubscriberStatus {
   unsubscribed
 }
 
+enum ReportFrequency {
+  daily
+  weekly
+  monthly
+  quarterly
+  yearly
+}
+
+enum ReportFormat {
+  pdf
+  excel
+  csv
+}
+
+enum ReportType {
+  sales
+  inventory
+  customers
+  orders
+  retention
+  returns
+  coupons
+}
+
 model User {
   id        Int       @id @default(autoincrement())
   name      String
@@ -139,6 +163,7 @@ model User {
 
   InventoryMovement InventoryMovement[]
   activityLogs ActivityLog[]
+  reportSubscriptions ReportSubscriber[]
   @@map("users")
 }
 
@@ -560,4 +585,34 @@ model ActivityLog {
   userAgent   String?  @map("user_agent")
   createdAt   DateTime @default(now()) @map("created_at")
   user        User?    @relation(fields: [userEmail], references: [email])
+}
+
+model ScheduledReport {
+  id          Int             @id @default(autoincrement())
+  name        String
+  type        ReportType
+  frequency   ReportFrequency
+  format      ReportFormat
+  status      Status          @default(active)
+  lastRun     DateTime?       @map("last_run")
+  nextRun     DateTime        @map("next_run")
+  createdById Int             @map("created_by")
+  
+  subscribers ReportSubscriber[]
+  
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+}
+
+model ReportSubscriber {
+  id                Int             @id @default(autoincrement())
+  scheduledReportId Int             @map("scheduled_report_id")
+  userId            Int             @map("user_id")
+  
+  report ScheduledReport @relation(fields: [scheduledReportId], references: [id])
+  user   User            @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([scheduledReportId, userId])
 }
