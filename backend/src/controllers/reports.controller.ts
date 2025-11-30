@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import { reportsService } from '../services/reports.service.js';
 import { schedulerService } from '../services/scheduler.service.js';
-import { successResponse, errorResponse } from '../utils/response.utils.js';
+import { sendSuccess, sendError } from '../utils/response.utils.js';
 
 export class ReportsController {
     // Get all scheduled reports
     async getScheduledReports(req: Request, res: Response) {
         try {
             const reports = await reportsService.getScheduledReports();
-            return successResponse(res, reports, 'Scheduled reports retrieved successfully');
+            return sendSuccess(res, reports, 'Scheduled reports retrieved successfully');
         } catch (error: any) {
-            return errorResponse(res, error.message, 500);
+            return sendError(res, error.message, 500);
         }
     }
 
@@ -21,7 +21,7 @@ export class ReportsController {
             const createdById = (req as any).user?.id || 1;
 
             if (!name || !type || !frequency || !format) {
-                return errorResponse(res, 'Missing required fields', 400);
+                return sendError(res, 'Missing required fields', 400);
             }
 
             const report = await reportsService.createScheduledReport({
@@ -35,9 +35,9 @@ export class ReportsController {
 
             await schedulerService.scheduleReport(report.id, report.frequency, report.nextRun);
 
-            return successResponse(res, report, 'Scheduled report created successfully', 201);
+            return sendSuccess(res, report, 'Scheduled report created successfully', 201);
         } catch (error: any) {
-            return errorResponse(res, error.message, 500);
+            return sendError(res, error.message, 500);
         }
     }
 
@@ -48,7 +48,7 @@ export class ReportsController {
             const { status } = req.body;
 
             if (!status) {
-                return errorResponse(res, 'Status is required', 400);
+                return sendError(res, 'Status is required', 400);
             }
 
             const report = await reportsService.updateScheduledReportStatus(parseInt(id), status);
@@ -59,9 +59,9 @@ export class ReportsController {
                 schedulerService.stopReport(parseInt(id));
             }
 
-            return successResponse(res, report, 'Scheduled report status updated successfully');
+            return sendSuccess(res, report, 'Scheduled report status updated successfully');
         } catch (error: any) {
-            return errorResponse(res, error.message, 500);
+            return sendError(res, error.message, 500);
         }
     }
 
@@ -70,9 +70,9 @@ export class ReportsController {
         try {
             const { id } = req.params;
             const result = await reportsService.runReport(parseInt(id));
-            return successResponse(res, result, 'Report executed successfully');
+            return sendSuccess(res, result, 'Report executed successfully');
         } catch (error: any) {
-            return errorResponse(res, error.message, 500);
+            return sendError(res, error.message, 500);
         }
     }
 
@@ -80,9 +80,9 @@ export class ReportsController {
     async getRetentionMetrics(req: Request, res: Response) {
         try {
             const metrics = await reportsService.getRetentionMetrics();
-            return successResponse(res, metrics, 'Retention metrics retrieved successfully');
+            return sendSuccess(res, metrics, 'Retention metrics retrieved successfully');
         } catch (error: any) {
-            return errorResponse(res, error.message, 500);
+            return sendError(res, error.message, 500);
         }
     }
 
@@ -93,7 +93,7 @@ export class ReportsController {
             const { startDate, endDate } = req.body;
 
             if (!type || !format) {
-                return errorResponse(res, 'Type and format are required', 400);
+                return sendError(res, 'Type and format are required', 400);
             }
 
             const fileBuffer = await reportsService.exportReport(
@@ -110,7 +110,7 @@ export class ReportsController {
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.send(fileBuffer);
         } catch (error: any) {
-            return errorResponse(res, error.message, 500);
+            return sendError(res, error.message, 500);
         }
     }
 

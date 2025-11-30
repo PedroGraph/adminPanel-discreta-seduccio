@@ -18,3 +18,10 @@ export const sendNoContent = (res: Response) => {
     data: null,
   });
 };
+
+export const sendError = (res: Response, message: string, statusCode = 500) => {
+  res.status(statusCode).json({
+    status: 'error',
+    message,
+  });
+};
