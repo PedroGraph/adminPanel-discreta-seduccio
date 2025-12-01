@@ -5,21 +5,31 @@ import { seedWarehouses } from './04-warehouses.js';
 import { seedSuppliers } from './05-suppliers.js';
 import { seedInventory } from './06-inventory.js';
 import { seedCoupons } from './07-coupons.js';
-// import { seedEmailTemplates } from './08-email-templates.js';
-
+import { seedCustomers } from './09-customers.js';
+import { seedOrders } from './10-orders.js';
 
 async function main(): Promise<void> {
   try {
     console.log('🌱 Iniciando proceso de seed...');
-    
+
+    // 1. Core Data
     await seedUsers();
     await seedCategories();
-    await seedProducts();
     await seedWarehouses();
     await seedSuppliers();
+
+    // 2. Product Catalog
+    await seedProducts();
+
+    // 3. Inventory & Pricing
     await seedInventory();
     await seedCoupons();
-    // await seedEmailTemplates();
+
+    // 4. Customer Data
+    await seedCustomers();
+
+    // 5. Transactional Data
+    await seedOrders();
 
     console.log('✅ Proceso de seed completado exitosamente');
   } catch (error) {

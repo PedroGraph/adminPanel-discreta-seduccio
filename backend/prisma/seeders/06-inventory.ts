@@ -1,60 +1,55 @@
-import { PrismaClient } from '@prisma/client';
-import { InventoryData } from 'prisma/interfaces/schema.js';
+import { PrismaClient, InventoryMovementType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function seedInventory(): Promise<void> {
-  const inventory: InventoryData[] = [
-    {
-      productId: 1, // Vestido Negro Elegante
-      warehouseId: 1, // Almacén Principal
-      quantity: 100,
-      availableQuantity: 100,
-      reservedQuantity: 0,
-      thresholdQuantity: 20,
-      location: 'A-1-1',
-    },
-    {
-      productId: 2, // Zapatos de Tacón Alto
-      warehouseId: 1, // Almacén Principal
-      quantity: 50,
-      availableQuantity: 50,
-      reservedQuantity: 0,
-      thresholdQuantity: 10,
-      location: 'B-2-1',
-    },
-    {
-      productId: 1, // Vestido Negro Elegante
-      warehouseId: 2, // Almacén Norte
-      quantity: 75,
-      availableQuantity: 75,
-      reservedQuantity: 0,
-      thresholdQuantity: 15,
-      location: 'A-1-1',
-    },
-    {
-      productId: 2, // Zapatos de Tacón Alto
-      warehouseId: 2, // Almacén Norte
-      quantity: 25,
-      availableQuantity: 25,
-      reservedQuantity: 0,
-      thresholdQuantity: 5,
-      location: 'B-2-1',
-    },
-  ];
+  const warehouse = await prisma.warehouse.findUnique({ where: { name: 'Almacén Central' } });
+  if (!warehouse) throw new Error('Warehouse not found');
 
-  for (const item of inventory) {
+  const products = await prisma.product.findMany();
+  const admin = await prisma.user.findFirst({ where: { role: 'admin' } });
+
+  for (const product of products) {
     await prisma.inventory.upsert({
       where: {
         productId_warehouseId: {
-          productId: item.productId,
-          warehouseId: item.warehouseId,
+          productId: product.id,
+          warehouseId: warehouse.id,
         },
       },
-      update: item,
-      create: item,
+      update: {},
+      create: {
+        productId: product.id,
+        warehouseId: warehouse.id,
+        quantity: 50,
+        availableQuantity: 50,
+        reservedQuantity: 0,
+        thresholdQuantity: 5,
+      },
     });
-  }
 
+    // Create initial movement if not exists
+    const existingMovement = await prisma.inventoryMovement.findFirst({
+      where: {
+        productId: product.id,
+        warehouseId: warehouse.id,
+        type: InventoryMovementType.incoming,
+        notes: 'Stock inicial',
+      },
+    });
+
+    if (!existingMovement && admin) {
+      await prisma.inventoryMovement.create({
+        data: {
+          productId: product.id,
+          warehouseId: warehouse.id,
+          quantity: 50,
+          type: InventoryMovementType.incoming,
+          notes: 'Stock inicial',
+          performedById: admin.id,
+        },
+      });
+    }
+  }
   console.log('✅ Inventario sembrado exitosamente');
-} 
+}

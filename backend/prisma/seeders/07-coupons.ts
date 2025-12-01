@@ -1,75 +1,32 @@
-import { CouponAppliesTo, CouponStatus, PrismaClient } from '@prisma/client';
+import { PrismaClient, CouponType, CouponAppliesTo } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function seedCoupons(): Promise<void> {
-  const coupons = [
-    {
-      code: 'WELCOME10',
-      type: 'percentage',
-      value: 10,
-      minPurchase: 500,
-      maxUses: 100,
-      usedCount: 0,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-      status: 'active',
-      appliesTo: 'all',
-    },
-    {
-      code: 'SUMMER20',
-      type: 'percentage',
-      value: 20,
-      minPurchase: 1000,
-      maxUses: 200,
-      usedCount: 0,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 días
-      status: 'active',
-      appliesTo: 'all',
-    },
-    {
-      code: 'FIXED50',
-      type: 'fixed',
-      value: 50,
-      minPurchase: 200,
-      maxUses: 50,
-      usedCount: 0,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 días
-      status: 'active',
-      appliesTo: 'all',
-    },
+  const admin = await prisma.user.findFirst({ where: { role: 'admin' } });
+  if (!admin) throw new Error('Admin user not found');
+
+  const couponsData = [
+    { code: 'BIENVENIDA10', type: CouponType.percentage, value: 10, status: 'active' },
+    { code: 'VERANO20', type: CouponType.percentage, value: 20, status: 'expired' },
+    { code: 'DESCUENTO50', type: CouponType.fixed, value: 50, status: 'active' },
   ];
 
-  for (const coupon of coupons) {
+  for (const coup of couponsData) {
     await prisma.coupon.upsert({
-      where: { code: coupon.code },
-      update: {
-        type: coupon.type as 'percentage' | 'fixed',
-        value: coupon.value,
-        minPurchase: coupon.minPurchase,
-        maxUses: coupon.maxUses,
-        usedCount: coupon.usedCount,
-        startDate: coupon.startDate,
-        endDate: coupon.endDate,
-        status: coupon.status as CouponStatus,
-        appliesTo: coupon.appliesTo as CouponAppliesTo,
-      },
+      where: { code: coup.code },
+      update: {},
       create: {
-        code: coupon.code,
-        type: coupon.type as 'percentage' | 'fixed',
-        value: coupon.value,
-        minPurchase: coupon.minPurchase,
-        maxUses: coupon.maxUses,
-        usedCount: coupon.usedCount,
-        startDate: coupon.startDate,
-        endDate: coupon.endDate,
-        status: coupon.status as CouponStatus,
-        appliesTo: coupon.appliesTo as CouponAppliesTo,
+        code: coup.code,
+        type: coup.type,
+        value: coup.value,
+        status: coup.status as any,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        appliesTo: CouponAppliesTo.all,
+        createdById: admin.id,
       },
     });
   }
-
   console.log('✅ Cupones sembrados exitosamente');
 }
