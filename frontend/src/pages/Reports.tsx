@@ -22,6 +22,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useReports } from "@/hooks/useReports";
 import { CreateScheduledReportModal } from "@/components/reports/CreateScheduledReportModal";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export const Reports = () => {
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
@@ -175,62 +176,66 @@ export const Reports = () => {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-600">
-                  <th className="text-left p-3 text-gray-300">Nombre</th>
-                  <th className="text-center p-3 text-gray-300">Frecuencia</th>
-                  <th className="text-center p-3 text-gray-300">Última Ejecución</th>
-                  <th className="text-center p-3 text-gray-300">Próxima Ejecución</th>
-                  <th className="text-center p-3 text-gray-300">Estado</th>
-                  <th className="text-center p-3 text-gray-300">Formato</th>
-                  <th className="text-center p-3 text-gray-300">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scheduledReports.map((report) => (
-                  <tr key={report.id} className="border-b border-gray-700 hover:bg-gray-600">
-                    <td className="p-3 text-white font-medium">{report.name}</td>
-                    <td className="p-3 text-center text-gray-300">{report.frequency}</td>
-                    <td className="p-3 text-center text-gray-300">{report.lastRun}</td>
-                    <td className="p-3 text-center text-gray-300">{report.nextRun}</td>
-                    <td className="p-3 text-center">
-                      <Badge className={`text-white ${getStatusColor(report.status)}`}>
-                        {report.status}
-                      </Badge>
-                    </td>
-                    <td className="p-3 text-center text-gray-300">{report.format}</td>
-                    <td className="p-3 text-center">
-                      <div className="flex justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
-                          onClick={() => runScheduledReport(report.id)}
-                          disabled={isGenerating}
-                        >
-                          <Play className="h-3 w-3 mr-1" />
-                          Ejecutar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
-                          onClick={() => toggleReportStatus(report.id)}
-                        >
-                          {report.status === 'Activo' ? (
-                            <Pause className="h-3 w-3 mr-1" />
-                          ) : (
-                            <Play className="h-3 w-3 mr-1" />
-                          )}
-                          {report.status === 'Activo' ? 'Pausar' : 'Activar'}
-                        </Button>
-                      </div>
-                    </td>
+            {isLoadingReports ? (
+              <TableSkeleton columns={7} rows={5} />
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-600">
+                    <th className="text-left p-3 text-gray-300">Nombre</th>
+                    <th className="text-center p-3 text-gray-300">Frecuencia</th>
+                    <th className="text-center p-3 text-gray-300">Última Ejecución</th>
+                    <th className="text-center p-3 text-gray-300">Próxima Ejecución</th>
+                    <th className="text-center p-3 text-gray-300">Estado</th>
+                    <th className="text-center p-3 text-gray-300">Formato</th>
+                    <th className="text-center p-3 text-gray-300">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {scheduledReports.map((report) => (
+                    <tr key={report.id} className="border-b border-gray-700 hover:bg-gray-600">
+                      <td className="p-3 text-white font-medium">{report.name}</td>
+                      <td className="p-3 text-center text-gray-300">{report.frequency}</td>
+                      <td className="p-3 text-center text-gray-300">{report.lastRun}</td>
+                      <td className="p-3 text-center text-gray-300">{report.nextRun}</td>
+                      <td className="p-3 text-center">
+                        <Badge className={`text-white ${getStatusColor(report.status)}`}>
+                          {report.status}
+                        </Badge>
+                      </td>
+                      <td className="p-3 text-center text-gray-300">{report.format}</td>
+                      <td className="p-3 text-center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                            onClick={() => runScheduledReport(report.id)}
+                            disabled={isGenerating}
+                          >
+                            <Play className="h-3 w-3 mr-1" />
+                            Ejecutar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+                            onClick={() => toggleReportStatus(report.id)}
+                          >
+                            {report.status === 'Activo' ? (
+                              <Pause className="h-3 w-3 mr-1" />
+                            ) : (
+                              <Play className="h-3 w-3 mr-1" />
+                            )}
+                            {report.status === 'Activo' ? 'Pausar' : 'Activar'}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -11,7 +11,7 @@ interface CouponsContextType {
   typeFilter: string;
   selectedCoupon: Coupon | null;
   isDetailModalOpen: boolean;
-  loading: boolean;
+  isLoading: boolean;
   setSearchTerm: (term: string) => void;
   setStatusFilter: (filter: string) => void;
   setTypeFilter: (filter: string) => void;
@@ -119,7 +119,7 @@ export const CouponsProvider = ({ children }: CouponsProviderProps) => {
     typeFilter,
     selectedCoupon,
     isDetailModalOpen,
-    loading,
+    isLoading: loading,
     setSearchTerm,
     setStatusFilter,
     setTypeFilter,

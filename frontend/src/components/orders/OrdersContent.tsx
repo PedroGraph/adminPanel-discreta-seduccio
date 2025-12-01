@@ -62,6 +62,7 @@ export const OrdersContent = () => {
         orders={orders}
         onViewDetails={handleViewDetails}
         onViewTracking={handleViewTracking}
+        isLoading={isLoading}
       />
 
       <OrderDetailModal

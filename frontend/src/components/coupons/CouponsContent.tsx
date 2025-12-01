@@ -24,6 +24,7 @@ export const CouponsContent = () => {
     handleViewDetails,
     handleEdit,
     handleDelete,
+    isLoading
   } = useCoupons();
 
   // CSV export function
@@ -85,6 +86,7 @@ export const CouponsContent = () => {
             onViewDetails={handleViewDetails}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            isLoading={isLoading}
           />
         </CardContent>
       </Card>

@@ -83,6 +83,7 @@ export const ReturnsContent = () => {
         onViewDetails={handleViewDetails}
         onApprove={handleApprove}
         onReject={handleReject}
+        isLoading={isLoading}
       />
 
       <CreateReturnModal

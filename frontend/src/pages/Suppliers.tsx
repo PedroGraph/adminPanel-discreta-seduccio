@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Building2, 
-  Plus, 
-  Search, 
-  Edit, 
+import {
+  Building2,
+  Plus,
+  Search,
+  Edit,
   Trash2,
   Phone,
   Mail,
@@ -20,6 +20,8 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { CreateSupplierModal } from "@/components/suppliers/CreateSupplierModal";
 import { EditSupplierModal } from "@/components/suppliers/EditSupplierModal";
 import { DeleteSupplierModal } from "@/components/suppliers/DeleteSupplierModal";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Suppliers = () => {
   const { suppliers, loading } = useSuppliers();
@@ -33,8 +35,8 @@ export const Suppliers = () => {
 
   const filteredSuppliers = suppliers.filter(supplier => {
     const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.email.toLowerCase().includes(searchTerm.toLowerCase());
+      supplier.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || supplier.status === statusFilter;
     const matchesCategory = categoryFilter === "all" || supplier.category === categoryFilter;
     return matchesSearch && matchesStatus && matchesCategory;
@@ -51,9 +53,9 @@ export const Suppliers = () => {
 
   const getRatingStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Star 
-        key={i} 
-        className={`h-3 w-3 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-400'}`} 
+      <Star
+        key={i}
+        className={`h-3 w-3 ${i < Math.floor(rating) ? 'text-yellow-400 fill-current' : 'text-gray-400'}`}
       />
     ));
   };
@@ -71,9 +73,23 @@ export const Suppliers = () => {
   if (loading) {
     return (
       <div className="p-6 bg-gray-800 min-h-screen">
-        <div className="flex justify-center items-center h-64">
-          <div className="text-white">Cargando proveedores...</div>
+        <div className="mb-6">
+          <Skeleton className="h-9 w-64 mb-2 bg-gray-700" />
+          <Skeleton className="h-5 w-96 bg-gray-700" />
         </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-xl bg-gray-700" />
+          ))}
+        </div>
+
+        {/* Filters Skeleton */}
+        <Skeleton className="h-24 w-full rounded-xl bg-gray-700 mb-6" />
+
+        {/* Table Skeleton */}
+        <TableSkeleton columns={8} rows={5} />
       </div>
     );
   }
@@ -81,7 +97,7 @@ export const Suppliers = () => {
   const totalSuppliers = suppliers.length;
   const activeSuppliers = suppliers.filter(s => s.status === 'Activo').length;
   const totalProducts = suppliers.reduce((sum, s) => sum + (s.products_supplied || 0), 0);
-  const avgRating = totalSuppliers > 0 ? 
+  const avgRating = totalSuppliers > 0 ?
     (suppliers.reduce((sum, s) => sum + (s.rating || 0), 0) / totalSuppliers).toFixed(1) : '0.0';
 
   return (
@@ -172,7 +188,7 @@ export const Suppliers = () => {
                 <option value="Ropa">Ropa</option>
                 <option value="Hogar">Hogar</option>
               </select>
-              <Button 
+              <Button
                 className="bg-purple-700 hover:bg-purple-600"
                 onClick={() => setShowCreateModal(true)}
               >
@@ -254,17 +270,17 @@ export const Suppliers = () => {
                     <td className="p-3 text-center text-gray-300">{supplier.payment_terms || "N/A"}</td>
                     <td className="p-3 text-center">
                       <div className="flex justify-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-xs"
                           onClick={() => handleEdit(supplier)}
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="text-xs text-red-400"
                           onClick={() => handleDelete(supplier)}
                         >
@@ -285,17 +301,17 @@ export const Suppliers = () => {
         </CardContent>
       </Card>
 
-      <CreateSupplierModal 
-        open={showCreateModal} 
-        onOpenChange={setShowCreateModal} 
+      <CreateSupplierModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
       />
-      <EditSupplierModal 
-        open={showEditModal} 
+      <EditSupplierModal
+        open={showEditModal}
         onOpenChange={setShowEditModal}
         supplier={selectedSupplier}
       />
-      <DeleteSupplierModal 
-        open={showDeleteModal} 
+      <DeleteSupplierModal
+        open={showDeleteModal}
         onOpenChange={setShowDeleteModal}
         supplier={selectedSupplier}
       />

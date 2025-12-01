@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { Edit, Trash2, Eye } from "lucide-react";
 import { useUsers } from "./UsersProvider";
 import { formatReadableDate } from "@/lib/utils";
@@ -44,21 +45,7 @@ export const UsersTable = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="flex items-center space-x-4 p-2">
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-3/5 bg-gray-600" />
-              <Skeleton className="h-3 w-4/5 bg-gray-600" />
-            </div>
-            <Skeleton className="h-6 w-20 rounded-md bg-gray-600" />
-            <Skeleton className="h-6 w-20 rounded-md bg-gray-600" />
-            <Skeleton className="h-8 w-24 rounded-md bg-gray-600" />
-          </div>
-        ))}
-      </div>
-    );
+    return <TableSkeleton columns={5} rows={5} />;
   }
 
   return (
