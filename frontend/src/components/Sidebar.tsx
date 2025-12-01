@@ -34,14 +34,14 @@ const menuItems = [
   { icon: Warehouse, label: "inventory", path: "/inventory" },
   { icon: ShoppingCart, label: "orders", path: "/orders" },
   { icon: RotateCcw, label: "returns", path: "/returns" },
-  { icon: Star, label: "reviews", path: "/reviews" },
+  // { icon: Star, label: "reviews", path: "/reviews" },
   { icon: Ticket, label: "coupons", path: "/coupons" },
-  { icon: Truck, label: "shipments", path: "/shipments" },
-  { icon: Users2, label: "suppliers", path: "/suppliers" },
+  // { icon: Truck, label: "shipments", path: "/shipments" },
+  // { icon: Users2, label: "suppliers", path: "/suppliers" },
   { icon: MessageCircle, label: "support", path: "/support" },
   { icon: MessageSquare, label: "virtual_chat", path: "/virtual-chat" },
   { icon: Activity, label: "activity_log", path: "/activity" },
-  { icon: Mail, label: "email_templates", path: "/email-templates" },
+  // { icon: Mail, label: "email_templates", path: "/email-templates" },
   { icon: FileText, label: "reports", path: "/reports" },
   { icon: Settings, label: "settings", path: "/settings" },
 ];
@@ -89,7 +89,7 @@ export function Sidebar() {
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
               {!isCollapsed && (
-                <span className="font-medium">{t(item.label as any)}</span>
+                <span className="font-medium">{t(item.label)}</span>
               )}
             </NavLink>
           );

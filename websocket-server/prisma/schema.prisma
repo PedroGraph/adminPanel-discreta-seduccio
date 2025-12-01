@@ -1,0 +1,47 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ChatConversationStatus {
+  waiting
+  active
+  ended
+}
+
+enum ChatSenderType {
+  customer
+  admin
+}
+
+model ChatConversation {
+  id             String                  @id @default(uuid())
+  customer_name  String
+  customer_email String?
+  status         ChatConversationStatus  @default(waiting)
+  assigned_to    Int?
+  started_at     DateTime                @default(now())
+  ended_at       DateTime?
+  
+  messages       ChatMessage[]
+  assigned_user  User?                   @relation(fields: [assigned_to], references: [id])
+  
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id              String           @id @default(uuid())
+  conversation_id String
+  sender_type     ChatSenderType
+  sender_name     String
+  message         String           @db.Text
+  sent_at         DateTime         @default(now())
+  
+  conversation    ChatConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  
+  @@map("chat_messages")
+}

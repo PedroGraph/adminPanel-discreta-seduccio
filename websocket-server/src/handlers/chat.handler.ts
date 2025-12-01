@@ -1,0 +1,235 @@
+import { WebSocket } from 'ws';
+import { dbService } from '../services/database.service';
+import type {
+    WebSocketMessage,
+    CustomerStartChatPayload,
+    AdminClaimChatPayload,
+    SendMessagePayload,
+    EndChatPayload,
+    ClientInfo,
+} from '../types/events';
+
+export async function handleCustomerStartChat(
+    ws: WebSocket,
+    payload: CustomerStartChatPayload,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    try {
+        // Create conversation in database
+        const conversation = await dbService.createConversation(
+            payload.customer_name,
+            payload.customer_email
+        );
+
+        // Send confirmation to customer
+        ws.send(
+            JSON.stringify({
+                type: 'chat:started',
+                payload: {
+                    conversation_id: conversation.id,
+                    message: 'Conectado. Esperando a un agente...',
+                },
+            })
+        );
+
+        // Broadcast to all admins
+        const notification = {
+            type: 'admin:new-chat',
+            payload: {
+                conversation_id: conversation.id,
+                customer_name: conversation.customer_name,
+                customer_email: conversation.customer_email,
+                started_at: conversation.started_at,
+            },
+        };
+
+        Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+            if (adminWs.readyState === WebSocket.OPEN) {
+                adminWs.send(JSON.stringify(notification));
+            }
+        });
+    } catch (error) {
+        console.error('Error starting chat:', error);
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                payload: { message: 'Error al iniciar el chat' },
+            })
+        );
+    }
+}
+
+export async function handleAdminClaimChat(
+    ws: WebSocket,
+    payload: AdminClaimChatPayload,
+    customerClients: Map<WebSocket, ClientInfo>,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    try {
+        // Claim conversation in database
+        await dbService.claimConversation(payload.conversation_id, payload.admin_id);
+
+        // Find customer websocket
+        let customerWs: WebSocket | undefined = undefined;
+        for (const [client, clientInfo] of customerClients.entries()) {
+            if (clientInfo.id === payload.conversation_id) {
+                customerWs = client;
+                break;
+            }
+        }
+
+        // Notify customer
+        if (customerWs && customerWs.readyState === WebSocket.OPEN) {
+            customerWs.send(
+                JSON.stringify({
+                    type: 'chat:claimed',
+                    payload: {
+                        admin_name: payload.admin_name,
+                        message: `${payload.admin_name} se ha unido al chat`,
+                    },
+                })
+            );
+        }
+
+        // Notify claiming admin
+        ws.send(
+            JSON.stringify({
+                type: 'chat:claimed',
+                payload: {
+                    conversation_id: payload.conversation_id,
+                    message: 'Chat reclamado exitosamente',
+                },
+            })
+        );
+
+        // Notify other admins that chat is no longer available
+        Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+            if (adminWs !== ws && adminWs.readyState === WebSocket.OPEN) {
+                adminWs.send(
+                    JSON.stringify({
+                        type: 'chat:no-longer-available',
+                        payload: { conversation_id: payload.conversation_id },
+                    })
+                );
+            }
+        });
+    } catch (error) {
+        console.error('Error claiming chat:', error);
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                payload: { message: 'Chat no disponible o ya reclamado' },
+            })
+        );
+    }
+}
+
+export async function handleSendMessage(
+    ws: WebSocket,
+    payload: SendMessagePayload,
+    customerClients: Map<WebSocket, ClientInfo>,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    try {
+        // Save message to database
+        await dbService.saveMessage(
+            payload.conversation_id,
+            payload.sender_type,
+            payload.sender_name,
+            payload.message
+        );
+
+        const messageData = {
+            type: 'chat:message',
+            payload: {
+                conversation_id: payload.conversation_id,
+                sender_type: payload.sender_type,
+                sender_name: payload.sender_name,
+                message: payload.message,
+                sent_at: new Date().toISOString(),
+            },
+        };
+
+        // Forward to the other party
+        if (payload.sender_type === 'customer') {
+            // Find admin handling this conversation
+            Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+                if (
+                    clientInfo.id === payload.conversation_id &&
+                    adminWs.readyState === WebSocket.OPEN
+                ) {
+                    adminWs.send(JSON.stringify(messageData));
+                }
+            });
+        } else {
+            // Find customer
+            Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
+                if (
+                    clientInfo.id === payload.conversation_id &&
+                    customerWs.readyState === WebSocket.OPEN
+                ) {
+                    customerWs.send(JSON.stringify(messageData));
+                }
+            });
+        }
+
+        // Echo back to sender
+        ws.send(JSON.stringify(messageData));
+    } catch (error) {
+        console.error('Error sending message:', error);
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                payload: { message: 'Error al enviar mensaje' },
+            })
+        );
+    }
+}
+
+export async function handleEndChat(
+    ws: WebSocket,
+    payload: EndChatPayload,
+    customerClients: Map<WebSocket, ClientInfo>,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    try {
+        // End conversation in database
+        await dbService.endConversation(payload.conversation_id);
+
+        const endMessage = {
+            type: 'chat:ended',
+            payload: {
+                conversation_id: payload.conversation_id,
+                message: 'La conversación ha finalizado',
+            },
+        };
+
+        // Notify customer
+        Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
+            if (
+                clientInfo.id === payload.conversation_id &&
+                customerWs.readyState === WebSocket.OPEN
+            ) {
+                customerWs.send(JSON.stringify(endMessage));
+            }
+        });
+
+        // Notify admin
+        Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+            if (
+                clientInfo.id === payload.conversation_id &&
+                adminWs.readyState === WebSocket.OPEN
+            ) {
+                adminWs.send(JSON.stringify(endMessage));
+            }
+        });
+    } catch (error) {
+        console.error('Error ending chat:', error);
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                payload: { message: 'Error al finalizar chat' },
+            })
+        );
+    }
+}

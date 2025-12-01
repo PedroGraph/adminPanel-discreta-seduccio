@@ -25,7 +25,7 @@ async function main() {
         { name: 'Bienestar', slug: 'bienestar', description: 'Aceites y lubricantes' },
     ];
 
-    const categories = {};
+    const categories: Record<string, any> = {};
     for (const cat of categoriesData) {
         const category = await prisma.category.upsert({
             where: { slug: cat.slug },
