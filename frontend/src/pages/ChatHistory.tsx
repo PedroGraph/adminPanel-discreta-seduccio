@@ -48,7 +48,7 @@ export const ChatHistory = () => {
 
     const fetchConversations = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/chat/conversations');
+            const response = await fetch('https://adminpanel-backend-21i2.onrender.com/api/chat/conversations');
             const data = await response.json();
             if (data.success) {
                 setConversations(data.data);

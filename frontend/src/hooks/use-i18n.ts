@@ -29,7 +29,7 @@ const translations = {
     country: "País",
     postal_code: "Código postal",
     previous_month: "Mes anterior",
-    
+
     // Navigation
     dashboard: "Dashboard",
     products: "Productos",
@@ -54,10 +54,11 @@ const translations = {
     suppliers: "Proveedores",
     support: "Soporte",
     virtual_chat: "Chat Virtual",
+    chat_history: "Historial de Chat",
     activity_log: "Log de Actividad",
     email_templates: "Plantillas de Email",
     reports: "Reportes",
-    
+
     // Dashboard
     dashboard_title: "Dashboard",
     dashboard_subtitle: "Resumen general de tu ecommerce",
@@ -147,53 +148,53 @@ const translations = {
     all_roles: "Todos los roles",
     all_status: "Todos",
     roles: "Roles",
-    user_header:{
+    user_header: {
       user: "Usuario",
       role: "Rol",
       status: "Estado",
       last_login: "Último inicio de sesión",
       actions: "Acciones"
     },
-    user_details:{
-     title: "Detalles del usuario",
-     role: "Rol",
-     status: "Estado",
-     last_login: "Último inicio de sesión",
-     email: "Email",
+    user_details: {
+      title: "Detalles del usuario",
+      role: "Rol",
+      status: "Estado",
+      last_login: "Último inicio de sesión",
+      email: "Email",
     },
-    user_edit:{
-     title: "Editar usuario",
-     subtitle: "Modifica los datos del usuario seleccionado",
-     name: "Nombre",
-     role: "Rol",
-     status: "Estado",
-     email: "Email",
-     cancel: "Cancelar",
-     save: "Guardar cambios",
+    user_edit: {
+      title: "Editar usuario",
+      subtitle: "Modifica los datos del usuario seleccionado",
+      name: "Nombre",
+      role: "Rol",
+      status: "Estado",
+      email: "Email",
+      cancel: "Cancelar",
+      save: "Guardar cambios",
     },
-    user_delete:{
-     title: "Eliminar usuario",
-     subtitle: "¿Estás seguro de eliminar el usuario seleccionado?",
-     cancel: "Cancelar",
-     delete: "Eliminar",
+    user_delete: {
+      title: "Eliminar usuario",
+      subtitle: "¿Estás seguro de eliminar el usuario seleccionado?",
+      cancel: "Cancelar",
+      delete: "Eliminar",
     },
-    new_user:{
-     title: "Nuevo usuario",
-     name: "Nombre",
-     password: "Contraseña",
-     role: "Rol",
-     status: "Estado",
-     email: "Email",
-     cancel: "Cancelar",
-     generate_password: "Generar",
-     sending: "Enviando...",
-     send_credentials: "Enviar credenciales",
+    new_user: {
+      title: "Nuevo usuario",
+      name: "Nombre",
+      password: "Contraseña",
+      role: "Rol",
+      status: "Estado",
+      email: "Email",
+      cancel: "Cancelar",
+      generate_password: "Generar",
+      sending: "Enviando...",
+      send_credentials: "Enviar credenciales",
     },
 
     //Login section
     login_title: "Bienvenido",
     login_subtitle: "Accede a tu panel de control",
-    forgot_password: "¿Olvidaste tu contraseña?",  
+    forgot_password: "¿Olvidaste tu contraseña?",
     price: "Precio",
   },
   en: {
@@ -224,7 +225,7 @@ const translations = {
     country: "Country",
     postal_code: "Postal code",
     previous_month: "Previous month",
-    
+
     // Navigation
     dashboard: "Dashboard",
     products: "Products",
@@ -249,10 +250,11 @@ const translations = {
     suppliers: "Suppliers",
     support: "Support",
     virtual_chat: "Virtual Chat",
+    chat_history: "Chat History",
     activity_log: "Activity Log",
     email_templates: "Email Templates",
     reports: "Reports",
-    
+
     // Dashboard
     dashboard_title: "Dashboard",
     dashboard_subtitle: "General overview of your ecommerce",
@@ -333,7 +335,7 @@ const translations = {
     most_sold_products: "Most Sold Products",
     weekly_conversion_rate: "Weekly Conversion Rate",
 
-     //Users section
+    //Users section
     users_title: "User Management",
     users_subtitle: "Manage users in the system",
     new_user_button: "New user",
@@ -342,47 +344,47 @@ const translations = {
     all_roles: "All roles",
     all_status: "All",
     roles: "Roles",
-    user_header:{
+    user_header: {
       user: "User",
       role: "Role",
       status: "Status",
       last_login: "Last login",
       actions: "Actions"
     },
-    user_details:{
-     title: "User details",
-     role: "Role",
-     status: "Status",
-     last_login: "Last login",
-     email: "Email",
+    user_details: {
+      title: "User details",
+      role: "Role",
+      status: "Status",
+      last_login: "Last login",
+      email: "Email",
     },
-    user_edit:{
-     title: "Edit user",
-     subtitle: "Modify the data of the selected user",
-     name: "Name",
-     role: "Role",
-     status: "Status",
-     email: "Email",
-     cancel: "Cancel",
-     save: "Save changes",
+    user_edit: {
+      title: "Edit user",
+      subtitle: "Modify the data of the selected user",
+      name: "Name",
+      role: "Role",
+      status: "Status",
+      email: "Email",
+      cancel: "Cancel",
+      save: "Save changes",
     },
-    user_delete:{
-     title: "Delete user",
-     subtitle: "Are you sure you want to delete the selected user?",
-     cancel: "Cancel",
-     delete: "Delete",
+    user_delete: {
+      title: "Delete user",
+      subtitle: "Are you sure you want to delete the selected user?",
+      cancel: "Cancel",
+      delete: "Delete",
     },
-    new_user:{
-     title: "New user",
-     name: "Name",
-     password: "Password",
-     role: "Role",
-     status: "Status",
-     email: "Email",
-     cancel: "Cancel",
-     sending: "Sending...",
-     generate_password: "Generate",
-     send_credentials: "Send credentials",
+    new_user: {
+      title: "New user",
+      name: "Name",
+      password: "Password",
+      role: "Role",
+      status: "Status",
+      email: "Email",
+      cancel: "Cancel",
+      sending: "Sending...",
+      generate_password: "Generate",
+      send_credentials: "Send credentials",
     },
 
     //Login section
