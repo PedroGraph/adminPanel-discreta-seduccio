@@ -4,10 +4,9 @@ const prisma = new PrismaClient();
 
 export async function seedCategories(): Promise<void> {
   const categoriesData = [
-    { name: 'Lencería', slug: 'lenceria', description: 'Ropa interior sensual y elegante' },
-    { name: 'Juguetes', slug: 'juguetes', description: 'Juguetes para adultos' },
-    { name: 'Accesorios', slug: 'accesorios', description: 'Accesorios complementarios' },
-    { name: 'Bienestar', slug: 'bienestar', description: 'Aceites y lubricantes' },
+    { name: 'Ropa', slug: 'ropa', description: 'Prendas de vestir para toda ocasión' },
+    { name: 'Calzado', slug: 'calzado', description: 'Zapatos, botas y zapatillas' },
+    { name: 'Accesorios', slug: 'accesorios', description: 'Complementos y accesorios de moda' },
   ];
 
   for (const cat of categoriesData) {
