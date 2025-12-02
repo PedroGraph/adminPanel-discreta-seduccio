@@ -5,6 +5,8 @@ import {
     handleAdminClaimChat,
     handleSendMessage,
     handleEndChat,
+    handleTyping,
+    handleRead,
 } from './handlers/chat.handler';
 import type { WebSocketMessage, ClientInfo } from './types/events';
 
@@ -97,6 +99,14 @@ wss.on('connection', (ws: WebSocket) => {
 
                 case 'chat:end':
                     await handleEndChat(ws, message.payload, customerClients, adminClients);
+                    break;
+
+                case 'chat:typing':
+                    await handleTyping(ws, message.payload, customerClients, adminClients);
+                    break;
+
+                case 'chat:read':
+                    await handleRead(ws, message.payload, customerClients, adminClients);
                     break;
 
                 default:

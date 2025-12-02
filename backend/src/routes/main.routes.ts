@@ -11,6 +11,7 @@ import couponsRoutes from './coupons.routes.js';
 import categoriesRoutes from './categories.routes.js';
 import returnsRoutes from './returns.routes.js';
 import reportsRoutes from './reports.routes.js';
+import chatRoutes from './chat.routes.js';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/orders', ordersRoutes);
 router.use('/returns', returnsRoutes);
 router.use('/coupons', couponsRoutes);
 router.use('/reports', reportsRoutes);
+router.use('/chat', chatRoutes);
 
 export default router;

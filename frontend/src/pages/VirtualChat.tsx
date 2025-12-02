@@ -33,6 +33,7 @@ export const VirtualChat = () => {
   const [activeConversation, setActiveConversation] = useState<ActiveConversation | null>(null);
   const [adminName] = useState("Admin"); // TODO: Get from auth context
   const [adminId] = useState(1); // TODO: Get from auth context
+  const [isTyping, setIsTyping] = useState(false);
 
   const { isConnected, sendMessage, subscribe } = useWebSocket({
     clientType: 'admin',
@@ -98,6 +99,14 @@ export const VirtualChat = () => {
           description: data.message,
         });
         setActiveConversation(null);
+        setIsTyping(false);
+      }
+    });
+
+    // Subscribe to typing events
+    const unsubscribeTyping = subscribe('chat:typing', (data: any) => {
+      if (activeConversation?.conversation_id === data.conversation_id && data.sender_type === 'customer') {
+        setIsTyping(data.is_typing);
       }
     });
 
@@ -107,6 +116,7 @@ export const VirtualChat = () => {
       unsubscribeNoLonger();
       unsubscribeMessage();
       unsubscribeEnded();
+      unsubscribeTyping();
     };
   }, [subscribe, activeConversation, toast]);
 
@@ -209,6 +219,14 @@ export const VirtualChat = () => {
           messages={activeConversation.messages}
           onSendMessage={handleSendMessage}
           onEndChat={handleEndChat}
+          isTyping={isTyping}
+          onTyping={(isTyping) => {
+            sendMessage('chat:typing', {
+              conversation_id: activeConversation.conversation_id,
+              sender_type: 'admin',
+              is_typing: isTyping,
+            });
+          }}
         />
       ) : (
         <Card className="bg-gray-700 border-gray-600">

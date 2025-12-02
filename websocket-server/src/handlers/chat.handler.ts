@@ -249,3 +249,80 @@ export async function handleEndChat(
         );
     }
 }
+
+export async function handleTyping(
+    ws: WebSocket,
+    payload: any, // TypingPayload
+    customerClients: Map<WebSocket, ClientInfo>,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    const typingMessage = {
+        type: 'chat:typing',
+        payload: {
+            conversation_id: payload.conversation_id,
+            sender_type: payload.sender_type,
+            is_typing: payload.is_typing,
+        },
+    };
+
+    if (payload.sender_type === 'customer') {
+        // Notify admin
+        Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+            if (
+                clientInfo.id === payload.conversation_id &&
+                adminWs.readyState === WebSocket.OPEN
+            ) {
+                adminWs.send(JSON.stringify(typingMessage));
+            }
+        });
+    } else {
+        // Notify customer
+        Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
+            if (
+                clientInfo.id === payload.conversation_id &&
+                customerWs.readyState === WebSocket.OPEN
+            ) {
+                customerWs.send(JSON.stringify(typingMessage));
+            }
+        });
+    }
+}
+
+export async function handleRead(
+    ws: WebSocket,
+    payload: any, // ReadPayload
+    customerClients: Map<WebSocket, ClientInfo>,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    // TODO: Update message status in database if needed
+
+    const readMessage = {
+        type: 'chat:read',
+        payload: {
+            conversation_id: payload.conversation_id,
+            reader_type: payload.reader_type,
+        },
+    };
+
+    if (payload.reader_type === 'customer') {
+        // Notify admin
+        Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+            if (
+                clientInfo.id === payload.conversation_id &&
+                adminWs.readyState === WebSocket.OPEN
+            ) {
+                adminWs.send(JSON.stringify(readMessage));
+            }
+        });
+    } else {
+        // Notify customer
+        Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
+            if (
+                clientInfo.id === payload.conversation_id &&
+                customerWs.readyState === WebSocket.OPEN
+            ) {
+                customerWs.send(JSON.stringify(readMessage));
+            }
+        });
+    }
+}

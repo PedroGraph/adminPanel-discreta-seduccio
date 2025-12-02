@@ -26,9 +26,12 @@ export const ActiveChat = ({
     messages,
     onSendMessage,
     onEndChat,
-}: ActiveChatProps) => {
+    isTyping = false,
+    onTyping,
+}: ActiveChatProps & { isTyping?: boolean; onTyping?: (isTyping: boolean) => void }) => {
     const [inputMessage, setInputMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -36,12 +39,34 @@ export const ActiveChat = ({
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, isTyping]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputMessage(e.target.value);
+
+        if (onTyping) {
+            onTyping(true);
+
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+
+            typingTimeoutRef.current = setTimeout(() => {
+                onTyping(false);
+            }, 2000);
+        }
+    };
 
     const handleSend = () => {
         if (inputMessage.trim()) {
             onSendMessage(inputMessage);
             setInputMessage("");
+            if (onTyping) {
+                onTyping(false);
+                if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                }
+            }
         }
     };
 
@@ -87,18 +112,28 @@ export const ActiveChat = ({
                             >
                                 <div
                                     className={`max-w-[70%] rounded-lg p-3 ${msg.sender_type === 'admin'
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-700 text-gray-100'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-700 text-gray-100'
                                         }`}
                                 >
                                     <div className="text-xs opacity-75 mb-1">{msg.sender_name}</div>
                                     <div className="break-words">{msg.message}</div>
-                                    <div className="text-xs opacity-60 mt-1">
-                                        {new Date(msg.sent_at).toLocaleTimeString()}
+                                    <div className="text-xs opacity-60 mt-1 flex justify-between items-center gap-2">
+                                        <span>{new Date(msg.sent_at).toLocaleTimeString()}</span>
+                                        {msg.sender_type === 'admin' && (
+                                            <span className="text-blue-200 text-[10px]">✓✓</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         ))
+                    )}
+                    {isTyping && (
+                        <div className="flex justify-start">
+                            <div className="bg-gray-700 text-gray-400 rounded-lg p-3 text-sm italic">
+                                Escribiendo...
+                            </div>
+                        </div>
                     )}
                     <div ref={messagesEndRef} />
                 </div>
@@ -107,7 +142,7 @@ export const ActiveChat = ({
                 <div className="flex gap-2">
                     <Input
                         value={inputMessage}
-                        onChange={(e) => setInputMessage(e.target.value)}
+                        onChange={handleInputChange}
                         onKeyPress={handleKeyPress}
                         placeholder="Escribe un mensaje..."
                         className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
