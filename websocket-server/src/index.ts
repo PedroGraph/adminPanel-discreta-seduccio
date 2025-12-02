@@ -60,15 +60,13 @@ wss.on('connection', (ws: WebSocket) => {
                     break;
 
                 case 'customer:start-chat':
-                    await handleCustomerStartChat(ws, message.payload, adminClients);
-                    // Update customer client info with conversation_id
-                    const clientInfo = customerClients.get(ws);
-                    if (clientInfo) {
-                        customerClients.set(ws, {
-                            ...clientInfo,
-                            id: message.payload?.conversation_id,
-                        });
-                    }
+                    const conversationId = await handleCustomerStartChat(ws, message.payload, adminClients);
+                    // Register customer with conversation_id
+                    customerClients.set(ws, {
+                        type: 'customer',
+                        id: conversationId,
+                        name: message.payload?.customer_name,
+                    });
                     break;
 
                 case 'admin:claim-chat':

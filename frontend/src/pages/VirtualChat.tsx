@@ -58,6 +58,14 @@ export const VirtualChat = () => {
         setWaitingChats((prev) =>
           prev.filter((chat) => chat.conversation_id !== data.conversation_id)
         );
+
+        // If we have history and this is the active conversation (or we just claimed it)
+        if (data.history && activeConversation?.conversation_id === data.conversation_id) {
+          setActiveConversation((prev) => prev ? {
+            ...prev,
+            messages: data.history
+          } : null);
+        }
       }
     });
 

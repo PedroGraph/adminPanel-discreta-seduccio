@@ -13,7 +13,7 @@ export async function handleCustomerStartChat(
     ws: WebSocket,
     payload: CustomerStartChatPayload,
     adminClients: Map<WebSocket, ClientInfo>
-) {
+): Promise<string> {
     try {
         // Create conversation in database
         const conversation = await dbService.createConversation(
@@ -48,6 +48,8 @@ export async function handleCustomerStartChat(
                 adminWs.send(JSON.stringify(notification));
             }
         });
+
+        return conversation.id;
     } catch (error) {
         console.error('Error starting chat:', error);
         ws.send(
@@ -56,6 +58,7 @@ export async function handleCustomerStartChat(
                 payload: { message: 'Error al iniciar el chat' },
             })
         );
+        throw error;
     }
 }
 
@@ -84,6 +87,7 @@ export async function handleAdminClaimChat(
                 JSON.stringify({
                     type: 'chat:claimed',
                     payload: {
+                        conversation_id: payload.conversation_id,
                         admin_name: payload.admin_name,
                         message: `${payload.admin_name} se ha unido al chat`,
                     },
@@ -91,24 +95,36 @@ export async function handleAdminClaimChat(
             );
         }
 
-        // Notify claiming admin
+        // Get conversation history
+        const history = await dbService.getConversationHistory(payload.conversation_id);
+
+        // Confirm to admin with history
         ws.send(
             JSON.stringify({
                 type: 'chat:claimed',
                 payload: {
                     conversation_id: payload.conversation_id,
                     message: 'Chat reclamado exitosamente',
+                    history: history.map((msg: any) => ({
+                        sender_type: msg.sender_type,
+                        sender_name: msg.sender_name,
+                        message: msg.message,
+                        sent_at: msg.sent_at.toISOString(),
+                    })),
                 },
             })
         );
 
-        // Notify other admins that chat is no longer available
+        // Notify other admins that this chat was claimed
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (adminWs !== ws && adminWs.readyState === WebSocket.OPEN) {
                 adminWs.send(
                     JSON.stringify({
-                        type: 'chat:no-longer-available',
-                        payload: { conversation_id: payload.conversation_id },
+                        type: 'admin:chat-claimed',
+                        payload: {
+                            conversation_id: payload.conversation_id,
+                            admin_name: payload.admin_name,
+                        },
                     })
                 );
             }
@@ -200,7 +216,7 @@ export async function handleEndChat(
             type: 'chat:ended',
             payload: {
                 conversation_id: payload.conversation_id,
-                message: 'La conversación ha finalizado',
+                message: 'El chat ha finalizado',
             },
         };
 
@@ -228,7 +244,7 @@ export async function handleEndChat(
         ws.send(
             JSON.stringify({
                 type: 'error',
-                payload: { message: 'Error al finalizar chat' },
+                payload: { message: 'Error al finalizar el chat' },
             })
         );
     }

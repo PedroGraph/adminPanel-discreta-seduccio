@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# For websocket testing
+# TODO: Remove this file
+test-client.html
