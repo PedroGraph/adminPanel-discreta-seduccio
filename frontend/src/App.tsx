@@ -33,6 +33,7 @@ import { Auth } from "./pages/Auth";
 import { UsersProvider } from "./components/users/UsersProvider";
 import { ActivityProvider } from "./components/activity/ActivityProvider";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { ChatProvider } from "./context/ChatContext";
 
 const queryClient = new QueryClient();
 
@@ -44,44 +45,46 @@ const App = () => (
       <BrowserRouter>
         <LanguageProvider>
           <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route element={<ProtectedRoute />}>
-                <Route
-                  path="/"
-                  element={
-                    <UsersProvider>
-                      <ActivityProvider>
-                        <Layout />
-                      </ActivityProvider>
-                    </UsersProvider>
-                  }
-                >
-                  <Route index element={<Dashboard />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="users" element={<Users />} />
-                  <Route path="products" element={<Products />} />
-                  <Route path="products/:slug" element={<ProductDetail />} />
-                  <Route path="categories" element={<Categories />} />
-                  <Route path="inventory" element={<Inventory />} />
-                  <Route path="orders" element={<Orders />} />
-                  <Route path="returns" element={<Returns />} />
-                  <Route path="reviews" element={<Reviews />} />
-                  <Route path="coupons" element={<Coupons />} />
-                  <Route path="shipments" element={<Shipments />} />
-                  <Route path="suppliers" element={<Suppliers />} />
-                  <Route path="support" element={<Support />} />
-                  <Route path="virtual-chat" element={<VirtualChat />} />
-                  <Route path="chat-history" element={<ChatHistory />} />
-                  <Route path="activity" element={<ActivityLog />} />
-                  <Route path="email-templates" element={<EmailTemplates />} />
-                  <Route path="reports" element={<Reports />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="profile" element={<Profile />} />
+            <ChatProvider>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path="/"
+                    element={
+                      <UsersProvider>
+                        <ActivityProvider>
+                          <Layout />
+                        </ActivityProvider>
+                      </UsersProvider>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="analytics" element={<Analytics />} />
+                    <Route path="users" element={<Users />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="products/:slug" element={<ProductDetail />} />
+                    <Route path="categories" element={<Categories />} />
+                    <Route path="inventory" element={<Inventory />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="returns" element={<Returns />} />
+                    <Route path="reviews" element={<Reviews />} />
+                    <Route path="coupons" element={<Coupons />} />
+                    <Route path="shipments" element={<Shipments />} />
+                    <Route path="suppliers" element={<Suppliers />} />
+                    <Route path="support" element={<Support />} />
+                    <Route path="virtual-chat" element={<VirtualChat />} />
+
+                    <Route path="activity" element={<ActivityLog />} />
+                    <Route path="email-templates" element={<EmailTemplates />} />
+                    <Route path="reports" element={<Reports />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="profile" element={<Profile />} />
+                  </Route>
                 </Route>
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ChatProvider>
           </AuthProvider>
         </LanguageProvider>
       </BrowserRouter>

@@ -41,7 +41,7 @@ const menuItems = [
   // { icon: Users2, label: "suppliers", path: "/suppliers" },
   { icon: MessageCircle, label: "support", path: "/support" },
   { icon: MessageSquare, label: "virtual_chat", path: "/virtual-chat" },
-  { icon: Clock, label: "chat_history", path: "/chat-history" },
+
   { icon: Activity, label: "activity_log", path: "/activity" },
   // { icon: Mail, label: "email_templates", path: "/email-templates" },
   { icon: FileText, label: "reports", path: "/reports" },

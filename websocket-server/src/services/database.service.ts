@@ -58,10 +58,44 @@ export class DatabaseService {
         });
     }
 
+    async reactivateConversation(conversationId: string, adminId: number) {
+        return await prisma.chatConversation.update({
+            where: { id: conversationId },
+            data: {
+                status: 'active',
+                assigned_to: adminId,
+                ended_at: null,
+            },
+        });
+    }
+
     async getConversationHistory(conversationId: string) {
         return await prisma.chatMessage.findMany({
             where: { conversation_id: conversationId },
             orderBy: { sent_at: 'asc' },
+        });
+    }
+
+    async getAllConversations() {
+        return await prisma.chatConversation.findMany({
+            orderBy: { started_at: 'desc' },
+            include: {
+                messages: {
+                    take: 1,
+                    orderBy: { sent_at: 'desc' }
+                }
+            }
+        });
+    }
+
+    async getConversationById(conversationId: string) {
+        return await prisma.chatConversation.findUnique({
+            where: { id: conversationId },
+            include: {
+                messages: {
+                    orderBy: { sent_at: 'asc' }
+                }
+            }
         });
     }
 }

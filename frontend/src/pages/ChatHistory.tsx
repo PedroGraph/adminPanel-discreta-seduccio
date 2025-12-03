@@ -11,32 +11,15 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { MessageCircle, Search, Calendar, User, Clock } from "lucide-react";
+import { MessageCircle, Search, Calendar, User, Clock, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useChatContext } from "@/context/ChatContext";
 
-interface Message {
-    id: string;
-    sender_type: 'customer' | 'admin';
-    sender_name: string;
-    message: string;
-    sent_at: string;
-}
+import { chatService, Conversation } from "@/services/chat.service";
 
-interface Conversation {
-    id: string;
-    customer_name: string;
-    customer_email?: string;
-    status: string;
-    started_at: string;
-    ended_at?: string;
-    assigned_user?: {
-        name: string;
-    };
-    messages: Message[];
-}
-
-export const ChatHistory = () => {
+export const ChatHistory = ({ embedded = false }: { embedded?: boolean }) => {
     const { toast } = useToast();
+    const { reactivateChat } = useChatContext();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const [loading, setLoading] = useState(true);
@@ -48,9 +31,8 @@ export const ChatHistory = () => {
 
     const fetchConversations = async () => {
         try {
-            const response = await fetch('https://adminpanel-backend-21i2.onrender.com/api/chat/conversations');
-            const data = await response.json();
-            if (data.success) {
+            const data = await chatService.getConversations();
+            if (data.status) {
                 setConversations(data.data);
             }
         } catch (error) {
@@ -67,13 +49,17 @@ export const ChatHistory = () => {
 
     const fetchConversationDetails = async (id: string) => {
         try {
-            const response = await fetch(`http://localhost:3000/api/chat/conversations/${id}`);
-            const data = await response.json();
+            const data = await chatService.getConversationDetails(id);
             if (data.success) {
                 setSelectedConversation(data.data);
             }
         } catch (error) {
             console.error('Error fetching conversation details:', error);
+            toast({
+                title: "Error",
+                description: "No se pudo cargar los detalles del chat",
+                variant: "destructive",
+            });
         }
     };
 
@@ -96,11 +82,13 @@ export const ChatHistory = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-900 min-h-screen text-white">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2">Historial de Chats</h1>
-                <p className="text-gray-400">Consulta y revisa conversaciones pasadas</p>
-            </div>
+        <div className={`bg-gray-900 min-h-screen text-white ${embedded ? '' : 'p-6'}`}>
+            {!embedded && (
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold mb-2">Historial de Chats</h1>
+                    <p className="text-gray-400">Consulta y revisa conversaciones pasadas</p>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* List Panel */}
@@ -175,7 +163,22 @@ export const ChatHistory = () => {
                                             )}
                                         </div>
                                     </div>
-                                    {getStatusBadge(selectedConversation.status)}
+
+                                    <div className="flex items-center gap-2">
+                                        {console.log(selectedConversation)}
+                                        {selectedConversation.status === 'ended' && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-blue-500 text-blue-400 hover:bg-blue-900/20"
+                                                onClick={() => reactivateChat(selectedConversation.id)}
+                                            >
+                                                <RefreshCw className="h-4 w-4 mr-2" />
+                                                Reanudar
+                                            </Button>
+                                        )}
+                                        {getStatusBadge(selectedConversation.status)}
+                                    </div>
                                 </div>
                             </CardHeader>
                             <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -212,5 +215,6 @@ export const ChatHistory = () => {
                 </div>
             </div>
         </div>
+
     );
 };

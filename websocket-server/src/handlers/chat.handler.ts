@@ -140,6 +140,84 @@ export async function handleAdminClaimChat(
     }
 }
 
+export async function handleAdminReactivateChat(
+    ws: WebSocket,
+    payload: AdminClaimChatPayload,
+    customerClients: Map<WebSocket, ClientInfo>,
+    adminClients: Map<WebSocket, ClientInfo>
+) {
+    try {
+        // Reactivate conversation in database
+        await dbService.reactivateConversation(payload.conversation_id, payload.admin_id);
+
+        // Find customer websocket
+        let customerWs: WebSocket | undefined = undefined;
+        for (const [client, clientInfo] of customerClients.entries()) {
+            if (clientInfo.id === payload.conversation_id) {
+                customerWs = client;
+                break;
+            }
+        }
+
+        // Notify customer if connected
+        if (customerWs && customerWs.readyState === WebSocket.OPEN) {
+            customerWs.send(
+                JSON.stringify({
+                    type: 'chat:reactivated',
+                    payload: {
+                        conversation_id: payload.conversation_id,
+                        admin_name: payload.admin_name,
+                        message: `${payload.admin_name} ha reanudado el chat`,
+                    },
+                })
+            );
+        }
+
+        // Get conversation history
+        const history = await dbService.getConversationHistory(payload.conversation_id);
+
+        // Confirm to admin with history
+        ws.send(
+            JSON.stringify({
+                type: 'chat:claimed', // Reuse claimed type to add to active chats
+                payload: {
+                    conversation_id: payload.conversation_id,
+                    message: 'Chat reanudado exitosamente',
+                    history: history.map((msg: any) => ({
+                        sender_type: msg.sender_type,
+                        sender_name: msg.sender_name,
+                        message: msg.message,
+                        sent_at: msg.sent_at.toISOString(),
+                    })),
+                },
+            })
+        );
+
+        // Notify other admins
+        Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
+            if (adminWs !== ws && adminWs.readyState === WebSocket.OPEN) {
+                adminWs.send(
+                    JSON.stringify({
+                        type: 'admin:chat-claimed', // Reuse claimed type to remove from waiting/others
+                        payload: {
+                            conversation_id: payload.conversation_id,
+                            admin_name: payload.admin_name,
+                        },
+                    })
+                );
+            }
+        });
+    } catch (error) {
+        console.error('Error reactivating chat:', error);
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                payload: { message: 'Error al reanudar el chat' },
+            })
+        );
+    }
+}
+
 export async function handleSendMessage(
     ws: WebSocket,
     payload: SendMessagePayload,

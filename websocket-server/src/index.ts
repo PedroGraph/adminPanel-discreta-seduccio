@@ -1,3 +1,6 @@
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import * as dotenv from 'dotenv';
 import {
@@ -7,7 +10,9 @@ import {
     handleEndChat,
     handleTyping,
     handleRead,
+    handleAdminReactivateChat,
 } from './handlers/chat.handler';
+import { dbService } from './services/database.service';
 import type { WebSocketMessage, ClientInfo } from './types/events';
 
 dotenv.config();
@@ -18,9 +23,41 @@ const PORT = parseInt(process.env.PORT || '8080');
 const customerClients = new Map<WebSocket, ClientInfo>();
 const adminClients = new Map<WebSocket, ClientInfo>();
 
-const wss = new WebSocketServer({ port: PORT });
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-console.log(`WebSocket server started on port ${PORT}`);
+// API Routes
+app.get('/api/chat/conversations', async (req, res) => {
+    try {
+        const conversations = await dbService.getAllConversations();
+        res.json({ status: true, data: conversations });
+    } catch (error) {
+        console.error('Error fetching conversations:', error);
+        res.status(500).json({ status: false, message: 'Internal server error' });
+    }
+});
+
+app.get('/api/chat/conversations/:id', async (req, res) => {
+    try {
+        const conversation = await dbService.getConversationById(req.params.id);
+        if (conversation) {
+            res.json({ success: true, data: conversation });
+        } else {
+            res.status(404).json({ success: false, message: 'Conversation not found' });
+        }
+    } catch (error) {
+        console.error('Error fetching conversation details:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+const server = createServer(app);
+const wss = new WebSocketServer({ server });
+
+server.listen(PORT, () => {
+    console.log(`WebSocket server started on port ${PORT}`);
+});
 
 wss.on('connection', (ws: WebSocket) => {
     console.log('New client connected');
