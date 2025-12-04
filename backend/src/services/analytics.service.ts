@@ -236,7 +236,8 @@ export class AnalyticsService {
     return {
       totalCustomers,
       newCustomersLast30Days,
-      percentageNewCustomers,
+      percentage: Number(percentageNewCustomers.toFixed(2)),
+      comparedToLastMonth: true
     };
   }
 
