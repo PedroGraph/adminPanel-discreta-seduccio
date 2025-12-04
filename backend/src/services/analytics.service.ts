@@ -16,26 +16,22 @@ export class AnalyticsService {
       ordersStats,
       productsStats,
       monthlySales,
-      topProducts
+      topProducts,
+      customersStats
     ] = await Promise.all([
       this.getRevenueStats(currentMonthStart, lastMonthStart, lastMonthEnd),
       this.getOrdersStats(currentMonthStart, lastMonthStart, lastMonthEnd),
       this.getProductsStats(currentMonthStart, lastMonthStart, lastMonthEnd),
       this.getMonthlySales(),
-      this.getTopProducts()
+      this.getTopProducts(),
+      this.getCustomersStats()
     ]);
-
-    const newCustomers = {
-      total: 342,
-      percentage: -8,
-      comparedToLastMonth: true
-    };
 
     return {
       statsCards: {
         revenue: revenueStats,
         orders: ordersStats,
-        newCustomers,
+        customers: customersStats,
         productsSold: productsStats
       },
       charts: {
@@ -68,8 +64,8 @@ export class AnalyticsService {
 
     const currentTotal = Number(currentRevenue._sum.totalAmount || 0);
     const lastTotal = Number(lastRevenue._sum.totalAmount || 0);
-    
-    const percentage = lastTotal === 0 
+
+    const percentage = lastTotal === 0
       ? (currentTotal > 0 ? 100 : 0)
       : ((currentTotal - lastTotal) / lastTotal) * 100;
 
@@ -99,7 +95,7 @@ export class AnalyticsService {
       }
     });
 
-    const percentage = lastOrders === 0 
+    const percentage = lastOrders === 0
       ? (currentOrders > 0 ? 100 : 0)
       : ((currentOrders - lastOrders) / lastOrders) * 100;
 
@@ -137,8 +133,8 @@ export class AnalyticsService {
 
     const currentTotal = Number(currentProducts._sum.quantity || 0);
     const lastTotal = Number(lastProducts._sum.quantity || 0);
-    
-    const percentage = lastTotal === 0 
+
+    const percentage = lastTotal === 0
       ? (currentTotal > 0 ? 100 : 0)
       : ((currentTotal - lastTotal) / lastTotal) * 100;
 
@@ -165,7 +161,7 @@ export class AnalyticsService {
     });
 
     const monthlyData = new Map<string, number>();
-    
+
     for (let i = 5; i >= 0; i--) {
       const monthDate = subMonths(now, i);
       const monthKey = format(monthDate, 'MMM', { locale: es });
@@ -198,7 +194,7 @@ export class AnalyticsService {
           where: { id: item.productId },
           select: { name: true }
         });
-        
+
         return {
           name: product?.name || 'Producto desconocido',
           quantity: item._sum.quantity || 0
@@ -207,16 +203,41 @@ export class AnalyticsService {
     );
 
     const totalQuantity = productsWithDetails.reduce(
-      (sum, product) => sum + product.quantity, 
+      (sum, product) => sum + product.quantity,
       0
     );
     return productsWithDetails.map(product => ({
       name: product.name,
       quantity: product.quantity,
-      percentage: totalQuantity > 0 
+      percentage: totalQuantity > 0
         ? Number(((product.quantity / totalQuantity) * 100).toFixed(2))
         : 0
     }));
+  }
+
+  private async getCustomersStats() {
+    const totalCustomers = await prisma.customer.count();
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const newCustomersLast30Days = await prisma.customer.count({
+      where: {
+        createdAt: {
+          gte: thirtyDaysAgo,
+        },
+      },
+    });
+
+    const percentageNewCustomers = totalCustomers > 0
+      ? Number(((newCustomersLast30Days / totalCustomers) * 100).toFixed(2))
+      : 0;
+
+    return {
+      totalCustomers,
+      newCustomersLast30Days,
+      percentageNewCustomers,
+    };
   }
 
   async getWeeklyConversionRate() {

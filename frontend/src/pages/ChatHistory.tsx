@@ -165,7 +165,6 @@ export const ChatHistory = ({ embedded = false }: { embedded?: boolean }) => {
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        {console.log(selectedConversation)}
                                         {selectedConversation.status === 'ended' && (
                                             <Button
                                                 size="sm"
