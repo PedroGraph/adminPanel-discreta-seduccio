@@ -31,7 +31,7 @@ export class AnalyticsService {
       statsCards: {
         revenue: revenueStats,
         orders: ordersStats,
-        customers: customersStats,
+        newCustomers: customersStats,
         productsSold: productsStats
       },
       charts: {
@@ -234,8 +234,8 @@ export class AnalyticsService {
       : 0;
 
     return {
+      total: newCustomersLast30Days,
       totalCustomers,
-      newCustomersLast30Days,
       percentage: Number(percentageNewCustomers.toFixed(2)),
       comparedToLastMonth: true
     };
