@@ -68,6 +68,10 @@ export const Analytics = () => {
 
   const { statsCards, charts } = analytics;
 
+  const customerStats = statsCards.newCustomers || statsCards.customers || {};
+  const customerTotal = customerStats.total || customerStats.newCustomersLast30Days || 0;
+  const customerPercentage = customerStats.percentage || 0;
+
   const topProductsWithColors = charts.topProducts.map((product, index) => ({
     ...product,
     color: PRODUCT_COLORS[index % PRODUCT_COLORS.length]
@@ -127,14 +131,14 @@ export const Analytics = () => {
             <Users className="h-4 w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{formatNumber(statsCards.newCustomers.total)}</div>
-            <p className={`text-xs flex items-center mt-1 ${statsCards.newCustomers.percentage >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
-              {statsCards.newCustomers.percentage >= 0 ? (
+            <div className="text-2xl font-bold text-white">{formatNumber(customerTotal)}</div>
+            <p className={`text-xs flex items-center mt-1 ${customerPercentage >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
+              {customerPercentage >= 0 ? (
                 <TrendingUp className="h-3 w-3 mr-1" />
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1" />
               )}
-              {statsCards.newCustomers.percentage >= 0 ? '+' : ''}{statsCards.newCustomers.percentage}% vs {t("previous_month")}
+              {customerPercentage >= 0 ? '+' : ''}{customerPercentage}% vs {t("previous_month")}
             </p>
           </CardContent>
         </Card>

@@ -23,6 +23,7 @@ export interface AnalyticsData {
     revenue: StatsCard;
     orders: StatsCard;
     newCustomers: StatsCard;
+    customers?: any; // Legacy support
     productsSold: StatsCard;
   };
   charts: {
