@@ -26,15 +26,21 @@ interface ChatContextType {
     waitingChats: WaitingChat[];
     activeConversations: ActiveConversation[];
     selectedConversationId: string | null;
+    openChatIds: string[];
+    minimizedChatIds: string[];
+    isMainMinimized: boolean;
     isConnected: boolean;
     isChatOpen: boolean;
-    isTyping: boolean;
+    isTyping: Record<string, boolean>;
     toggleChatWindow: () => void;
+    toggleMainMinimized: (minimized?: boolean) => void;
     claimChat: (conversationId: string) => void;
     selectChat: (conversationId: string | null) => void;
-    sendMessage: (message: string) => void;
+    closeChatWindow: (conversationId: string) => void;
+    toggleChatMinimized: (conversationId: string) => void;
+    sendMessage: (conversationId: string, message: string) => void;
     endChat: (conversationId: string) => void;
-    sendTyping: (isTyping: boolean) => void;
+    sendTyping: (conversationId: string, isTyping: boolean) => void;
     reactivateChat: (conversationId: string) => void;
 }
 
@@ -45,10 +51,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const [waitingChats, setWaitingChats] = useState<WaitingChat[]>([]);
     const [activeConversations, setActiveConversations] = useState<ActiveConversation[]>([]);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const [openChatIds, setOpenChatIds] = useState<string[]>([]);
+    const [minimizedChatIds, setMinimizedChatIds] = useState<string[]>([]);
+    const [isMainMinimized, setIsMainMinimized] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [adminName] = useState("Admin"); // TODO: Get from auth context
     const [adminId] = useState(1); // TODO: Get from auth context
-    const [isTyping, setIsTyping] = useState(false);
+    const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
 
     const { isConnected, sendMessage: wsSendMessage, subscribe } = useWebSocket({
         clientType: 'admin',
@@ -109,8 +118,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 })
             );
 
-            // If chat is closed or not selected, show notification
-            if (!isChatOpen || selectedConversationId !== data.conversation_id) {
+            // Notify if window not open
+            if (!openChatIds.includes(data.conversation_id)) {
                 toast({
                     title: `Mensaje de ${data.sender_name}`,
                     description: data.message,
@@ -121,21 +130,31 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         // Subscribe to chat ended
         const unsubscribeEnded = subscribe('chat:ended', (data: any) => {
             setActiveConversations((prev) => prev.filter(c => c.conversation_id !== data.conversation_id));
+            setOpenChatIds(prev => prev.filter(id => id !== data.conversation_id));
 
             if (selectedConversationId === data.conversation_id) {
                 setSelectedConversationId(null);
-                toast({
-                    title: "Chat finalizado",
-                    description: data.message,
-                });
-                setIsTyping(false);
             }
+
+            toast({
+                title: "Chat finalizado",
+                description: data.message,
+            });
+
+            setIsTyping(prev => {
+                const newState = { ...prev };
+                delete newState[data.conversation_id];
+                return newState;
+            });
         });
 
         // Subscribe to typing events
         const unsubscribeTyping = subscribe('chat:typing', (data: any) => {
-            if (selectedConversationId === data.conversation_id && data.sender_type === 'customer') {
-                setIsTyping(data.is_typing);
+            if (data.sender_type === 'customer') {
+                setIsTyping(prev => ({
+                    ...prev,
+                    [data.conversation_id]: data.is_typing
+                }));
             }
         });
 
@@ -147,7 +166,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             unsubscribeEnded();
             unsubscribeTyping();
         };
-    }, [subscribe, selectedConversationId, isChatOpen, toast]);
+    }, [subscribe, selectedConversationId, openChatIds, toast]);
 
     const claimChat = useCallback((conversationId: string) => {
         const chat = waitingChats.find((c) => c.conversation_id === conversationId);
@@ -167,27 +186,54 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
             setActiveConversations(prev => [...prev, newConversation]);
             setSelectedConversationId(conversationId);
+            setOpenChatIds(prev => [...new Set([...prev, conversationId])]);
+            setMinimizedChatIds(prev => prev.filter(id => id !== conversationId));
             setIsChatOpen(true);
+            setIsMainMinimized(false);
         }
     }, [waitingChats, wsSendMessage, adminId, adminName]);
 
     const selectChat = useCallback((conversationId: string | null) => {
         setSelectedConversationId(conversationId);
+        if (conversationId) {
+            if (!openChatIds.includes(conversationId)) {
+                setOpenChatIds(prev => [...prev, conversationId]);
+            }
+            setMinimizedChatIds(prev => prev.filter(id => id !== conversationId));
+        }
+    }, [openChatIds]);
+
+    const closeChatWindow = useCallback((conversationId: string) => {
+        setOpenChatIds(prev => prev.filter(id => id !== conversationId));
+        setMinimizedChatIds(prev => prev.filter(id => id !== conversationId));
+        if (selectedConversationId === conversationId) {
+            setSelectedConversationId(null);
+        }
+    }, [selectedConversationId]);
+
+    const toggleChatMinimized = useCallback((conversationId: string) => {
+        setMinimizedChatIds(prev =>
+            prev.includes(conversationId)
+                ? prev.filter(id => id !== conversationId)
+                : [...prev, conversationId]
+        );
     }, []);
 
-    const sendMessage = useCallback((message: string) => {
-        if (!selectedConversationId) return;
+    const toggleMainMinimized = useCallback((minimized?: boolean) => {
+        setIsMainMinimized(prev => minimized !== undefined ? minimized : !prev);
+    }, []);
 
-        const conversation = activeConversations.find(c => c.conversation_id === selectedConversationId);
+    const sendMessage = useCallback((conversationId: string, message: string) => {
+        const conversation = activeConversations.find(c => c.conversation_id === conversationId);
         if (!conversation) return;
 
         wsSendMessage('chat:send-message', {
-            conversation_id: selectedConversationId,
+            conversation_id: conversationId,
             sender_type: 'admin',
             sender_name: adminName,
             message,
         });
-    }, [selectedConversationId, activeConversations, wsSendMessage, adminName]);
+    }, [activeConversations, wsSendMessage, adminName]);
 
     const endChat = useCallback((conversationId: string) => {
         wsSendMessage('chat:end', {
@@ -195,15 +241,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         });
     }, [wsSendMessage]);
 
-    const sendTyping = useCallback((isTyping: boolean) => {
-        if (!selectedConversationId) return;
-
+    const sendTyping = useCallback((conversationId: string, isTyping: boolean) => {
         wsSendMessage('chat:typing', {
-            conversation_id: selectedConversationId,
+            conversation_id: conversationId,
             sender_type: 'admin',
             is_typing: isTyping,
         });
-    }, [selectedConversationId, wsSendMessage]);
+    }, [wsSendMessage]);
 
     const reactivateChat = useCallback((conversationId: string) => {
         wsSendMessage('admin:reactivate-chat', {
@@ -212,27 +256,37 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             admin_name: adminName,
         });
 
-        // We optimistically set it as selected, but the actual addition to activeConversations 
-        // happens when we receive the 'chat:claimed' event (which we reuse for reactivation)
         setSelectedConversationId(conversationId);
+        setOpenChatIds(prev => [...new Set([...prev, conversationId])]);
+        setMinimizedChatIds(prev => prev.filter(id => id !== conversationId));
         setIsChatOpen(true);
+        setIsMainMinimized(false);
     }, [wsSendMessage, adminId, adminName]);
 
     const toggleChatWindow = useCallback(() => {
         setIsChatOpen(prev => !prev);
-    }, []);
+        if (!isChatOpen) {
+            setIsMainMinimized(false);
+        }
+    }, [isChatOpen]);
 
     return (
         <ChatContext.Provider value={{
             waitingChats,
             activeConversations,
             selectedConversationId,
+            openChatIds,
+            minimizedChatIds,
+            isMainMinimized,
             isConnected,
             isChatOpen,
             isTyping,
             toggleChatWindow,
+            toggleMainMinimized,
             claimChat,
             selectChat,
+            closeChatWindow,
+            toggleChatMinimized,
             sendMessage,
             endChat,
             sendTyping,

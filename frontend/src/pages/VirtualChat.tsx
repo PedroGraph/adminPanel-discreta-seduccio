@@ -40,6 +40,7 @@ export const VirtualChat = () => {
       </div>
 
       <Tabs defaultValue="live" className="w-full">
+        {/* ... Rest of the component header ... */}
         <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-700">
           <TabsTrigger value="live" className="data-[state=active]:bg-gray-600 data-[state=active]:text-white text-gray-300">
             <MessageCircle className="w-4 h-4 mr-2" />
@@ -86,13 +87,6 @@ export const VirtualChat = () => {
                   {isConnected ? "Online" : "Offline"}
                 </div>
                 <p className="text-xs text-green-400">Servidor WebSocket</p>
-                <p className="text-gray-400">
-                  {activeConversations.length > 0
-                    ? "Selecciona una conversación de la lista para continuar"
-                    : waitingChats.length > 0
-                      ? "Selecciona un chat en espera para comenzar"
-                      : "Esperando nuevos chats de clientes..."}
-                </p>
               </CardContent>
             </Card>
           </div>
@@ -118,10 +112,10 @@ export const VirtualChat = () => {
                   conversationId={selectedConversation.conversation_id}
                   customerName={selectedConversation.customer_name}
                   messages={selectedConversation.messages}
-                  onSendMessage={sendMessage}
+                  onSendMessage={(msg) => sendMessage(selectedConversation.conversation_id, msg)}
                   onEndChat={() => endChat(selectedConversation.conversation_id)}
-                  isTyping={isTyping}
-                  onTyping={sendTyping}
+                  isTyping={isTyping[selectedConversation.conversation_id]}
+                  onTyping={(typing) => sendTyping(selectedConversation.conversation_id, typing)}
                 />
               ) : (
                 <Card className="bg-gray-700 border-gray-600 h-[500px] flex items-center justify-center">
@@ -131,11 +125,7 @@ export const VirtualChat = () => {
                       {activeConversations.length > 0 ? "Selecciona un chat" : "No hay chat activo"}
                     </h3>
                     <p className="text-gray-400">
-                      {activeConversations.length > 0
-                        ? "Selecciona una conversación de la lista para continuar"
-                        : waitingChats.length > 0
-                          ? "Selecciona un chat en espera para comenzar"
-                          : "Esperando nuevos chats de clientes..."}
+                      Selecciona una conversación de la lista para gestionarla aquí, o usa el widget flotante.
                     </p>
                   </CardContent>
                 </Card>
