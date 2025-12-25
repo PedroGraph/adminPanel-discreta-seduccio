@@ -72,7 +72,7 @@ wss.on('connection', (ws: WebSocket) => {
                     // Customer authentication
                     customerClients.set(ws, {
                         type: 'customer',
-                        id: message.payload?.conversation_id,
+                        conversationId: message.payload?.conversation_id,
                         name: message.payload?.name,
                     });
                     ws.send(
@@ -87,8 +87,9 @@ wss.on('connection', (ws: WebSocket) => {
                     // Admin authentication
                     adminClients.set(ws, {
                         type: 'admin',
-                        id: message.payload?.user_id,
+                        userId: message.payload?.user_id,
                         name: message.payload?.name,
+                        conversationIds: [], // Start with empty list
                     });
                     ws.send(
                         JSON.stringify({
@@ -103,25 +104,29 @@ wss.on('connection', (ws: WebSocket) => {
                     // Register customer with conversation_id
                     customerClients.set(ws, {
                         type: 'customer',
-                        id: conversationId,
+                        conversationId: conversationId,
                         name: message.payload?.customer_name,
                     });
                     break;
 
                 case 'admin:claim-chat':
-                    await handleAdminClaimChat(
-                        ws,
-                        message.payload,
-                        customerClients,
-                        adminClients
-                    );
-                    // Update admin client info with conversation_id
+                case 'admin:reactivate-chat':
+                    if (message.type === 'admin:claim-chat') {
+                        await handleAdminClaimChat(ws, message.payload, customerClients, adminClients);
+                    } else {
+                        await handleAdminReactivateChat(ws, message.payload, customerClients, adminClients);
+                    }
+                    
+                    // Update admin client info with new conversation_id in the list
                     const adminInfo = adminClients.get(ws);
                     if (adminInfo) {
-                        adminClients.set(ws, {
-                            ...adminInfo,
-                            id: message.payload?.conversation_id,
-                        });
+                        const currentIds = adminInfo.conversationIds || [];
+                        if (!currentIds.includes(message.payload?.conversation_id)) {
+                            adminClients.set(ws, {
+                                ...adminInfo,
+                                conversationIds: [...currentIds, message.payload?.conversation_id],
+                            });
+                        }
                     }
                     break;
 

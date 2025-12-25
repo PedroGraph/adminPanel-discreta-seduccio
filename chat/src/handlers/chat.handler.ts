@@ -75,7 +75,7 @@ export async function handleAdminClaimChat(
         // Find customer websocket
         let customerWs: WebSocket | undefined = undefined;
         for (const [client, clientInfo] of customerClients.entries()) {
-            if (clientInfo.id === payload.conversation_id) {
+            if (clientInfo.conversationId === payload.conversation_id) {
                 customerWs = client;
                 break;
             }
@@ -153,7 +153,7 @@ export async function handleAdminReactivateChat(
         // Find customer websocket
         let customerWs: WebSocket | undefined = undefined;
         for (const [client, clientInfo] of customerClients.entries()) {
-            if (clientInfo.id === payload.conversation_id) {
+            if (clientInfo.conversationId === payload.conversation_id) {
                 customerWs = client;
                 break;
             }
@@ -249,7 +249,7 @@ export async function handleSendMessage(
             // Find admin handling this conversation
             Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
                 if (
-                    clientInfo.id === payload.conversation_id &&
+                    clientInfo.conversationIds?.includes(payload.conversation_id) &&
                     adminWs.readyState === WebSocket.OPEN
                 ) {
                     adminWs.send(JSON.stringify(messageData));
@@ -259,7 +259,7 @@ export async function handleSendMessage(
             // Find customer
             Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
                 if (
-                    clientInfo.id === payload.conversation_id &&
+                    clientInfo.conversationId === payload.conversation_id &&
                     customerWs.readyState === WebSocket.OPEN
                 ) {
                     customerWs.send(JSON.stringify(messageData));
@@ -301,7 +301,7 @@ export async function handleEndChat(
         // Notify customer
         Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
             if (
-                clientInfo.id === payload.conversation_id &&
+                clientInfo.conversationId === payload.conversation_id &&
                 customerWs.readyState === WebSocket.OPEN
             ) {
                 customerWs.send(JSON.stringify(endMessage));
@@ -311,10 +311,15 @@ export async function handleEndChat(
         // Notify admin
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (
-                clientInfo.id === payload.conversation_id &&
+                clientInfo.conversationIds?.includes(payload.conversation_id) &&
                 adminWs.readyState === WebSocket.OPEN
             ) {
                 adminWs.send(JSON.stringify(endMessage));
+                
+                // Remove from active ids
+                if (clientInfo.conversationIds) {
+                    clientInfo.conversationIds = clientInfo.conversationIds.filter(id => id !== payload.conversation_id);
+                }
             }
         });
     } catch (error) {
@@ -347,7 +352,7 @@ export async function handleTyping(
         // Notify admin
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (
-                clientInfo.id === payload.conversation_id &&
+                clientInfo.conversationIds?.includes(payload.conversation_id) &&
                 adminWs.readyState === WebSocket.OPEN
             ) {
                 adminWs.send(JSON.stringify(typingMessage));
@@ -357,7 +362,7 @@ export async function handleTyping(
         // Notify customer
         Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
             if (
-                clientInfo.id === payload.conversation_id &&
+                clientInfo.conversationId === payload.conversation_id &&
                 customerWs.readyState === WebSocket.OPEN
             ) {
                 customerWs.send(JSON.stringify(typingMessage));
@@ -386,7 +391,7 @@ export async function handleRead(
         // Notify admin
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (
-                clientInfo.id === payload.conversation_id &&
+                clientInfo.conversationIds?.includes(payload.conversation_id) &&
                 adminWs.readyState === WebSocket.OPEN
             ) {
                 adminWs.send(JSON.stringify(readMessage));
@@ -396,7 +401,7 @@ export async function handleRead(
         // Notify customer
         Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
             if (
-                clientInfo.id === payload.conversation_id &&
+                clientInfo.conversationId === payload.conversation_id &&
                 customerWs.readyState === WebSocket.OPEN
             ) {
                 customerWs.send(JSON.stringify(readMessage));
