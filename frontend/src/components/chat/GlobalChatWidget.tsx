@@ -98,7 +98,7 @@ export const GlobalChatWidget = () => {
 
             {/* Floating Chat Windows */}
             {openConversations.map((chat) => (
-                <div key={chat.conversation_id} className="pointer-events-auto mb-4 w-80 animate-in slide-in-from-bottom-4 duration-300">
+                <div key={chat.conversation_id} className="pointer-events-auto w-80 animate-in slide-in-from-bottom-4 duration-300">
                     <ChatWindow
                         chat={chat}
                         onClose={() => closeChatWindow(chat.conversation_id)}

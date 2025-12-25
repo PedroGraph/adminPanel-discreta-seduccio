@@ -1,5 +1,6 @@
 import { WebSocket } from 'ws';
 import { dbService } from '../services/database.service';
+import { InactivityService } from '../services/inactivity.service';
 import type {
     WebSocketMessage,
     CustomerStartChatPayload,
@@ -24,28 +25,28 @@ export async function handleCustomerStartChat(
         // Send confirmation to customer
         ws.send(
             JSON.stringify({
-                type: 'chat:started',
+                type: 'customer:chat-started',
                 payload: {
                     conversation_id: conversation.id,
-                    message: 'Conectado. Esperando a un agente...',
+                    message: 'Buscando un agente disponible...',
                 },
             })
         );
 
-        // Broadcast to all admins
-        const notification = {
+        // Notify all admins about new chat
+        const notifyMsg = JSON.stringify({
             type: 'admin:new-chat',
             payload: {
                 conversation_id: conversation.id,
-                customer_name: conversation.customer_name,
-                customer_email: conversation.customer_email,
-                started_at: conversation.started_at,
+                customer_name: payload.customer_name,
+                customer_email: payload.customer_email,
+                created_at: conversation.started_at.toISOString(),
             },
-        };
+        });
 
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (adminWs.readyState === WebSocket.OPEN) {
-                adminWs.send(JSON.stringify(notification));
+                adminWs.send(notifyMsg);
             }
         });
 
@@ -66,23 +67,35 @@ export async function handleAdminClaimChat(
     ws: WebSocket,
     payload: AdminClaimChatPayload,
     customerClients: Map<WebSocket, ClientInfo>,
-    adminClients: Map<WebSocket, ClientInfo>
+    adminClients: Map<WebSocket, ClientInfo>,
+    inactivityService: InactivityService
 ) {
     try {
         // Claim conversation in database
         await dbService.claimConversation(payload.conversation_id, payload.admin_id);
 
+        const welcomeText = `Hola, soy ${payload.admin_name}. ¿En qué puedo ayudarte hoy?`;
+        await dbService.saveMessage(
+            payload.conversation_id,
+            'admin',
+            payload.admin_name,
+            welcomeText
+        );
+
         // Find customer websocket
         let customerWs: WebSocket | undefined = undefined;
+        let customerName = 'Cliente';
         for (const [client, clientInfo] of customerClients.entries()) {
             if (clientInfo.conversationId === payload.conversation_id) {
                 customerWs = client;
+                customerName = clientInfo.name || 'Cliente';
                 break;
             }
         }
 
-        // Notify customer
+        // Notify customer and send the automatic message
         if (customerWs && customerWs.readyState === WebSocket.OPEN) {
+            // First notify about the claim
             customerWs.send(
                 JSON.stringify({
                     type: 'chat:claimed',
@@ -93,7 +106,24 @@ export async function handleAdminClaimChat(
                     },
                 })
             );
+
+            // Then send the actual message
+            customerWs.send(
+                JSON.stringify({
+                    type: 'chat:message',
+                    payload: {
+                        conversation_id: payload.conversation_id,
+                        sender_type: 'admin',
+                        sender_name: payload.admin_name,
+                        message: welcomeText,
+                        sent_at: new Date().toISOString(),
+                    },
+                })
+            );
         }
+
+        // Register in inactivity tracker
+        inactivityService.updateActivity(payload.conversation_id, 'admin', customerName, payload.admin_name);
 
         // Get conversation history
         const history = await dbService.getConversationHistory(payload.conversation_id);
@@ -144,17 +174,29 @@ export async function handleAdminReactivateChat(
     ws: WebSocket,
     payload: AdminClaimChatPayload,
     customerClients: Map<WebSocket, ClientInfo>,
-    adminClients: Map<WebSocket, ClientInfo>
+    adminClients: Map<WebSocket, ClientInfo>,
+    inactivityService: InactivityService
 ) {
     try {
         // Reactivate conversation in database
         await dbService.reactivateConversation(payload.conversation_id, payload.admin_id);
 
+        // Send automatic welcome back message
+        const welcomeText = `Hola de nuevo, soy ${payload.admin_name}. ¿En qué más puedo ayudarte?`;
+        await dbService.saveMessage(
+            payload.conversation_id,
+            'admin',
+            payload.admin_name,
+            welcomeText
+        );
+
         // Find customer websocket
         let customerWs: WebSocket | undefined = undefined;
+        let customerName = 'Cliente';
         for (const [client, clientInfo] of customerClients.entries()) {
             if (clientInfo.conversationId === payload.conversation_id) {
                 customerWs = client;
+                customerName = clientInfo.name || 'Cliente';
                 break;
             }
         }
@@ -171,7 +213,24 @@ export async function handleAdminReactivateChat(
                     },
                 })
             );
+
+            // Send actual welcome back message
+            customerWs.send(
+                JSON.stringify({
+                    type: 'chat:message',
+                    payload: {
+                        conversation_id: payload.conversation_id,
+                        sender_type: 'admin',
+                        sender_name: payload.admin_name,
+                        message: welcomeText,
+                        sent_at: new Date().toISOString(),
+                    },
+                })
+            );
         }
+
+        // Register in inactivity tracker
+        inactivityService.updateActivity(payload.conversation_id, 'admin', customerName, payload.admin_name);
 
         // Get conversation history
         const history = await dbService.getConversationHistory(payload.conversation_id);
@@ -222,7 +281,8 @@ export async function handleSendMessage(
     ws: WebSocket,
     payload: SendMessagePayload,
     customerClients: Map<WebSocket, ClientInfo>,
-    adminClients: Map<WebSocket, ClientInfo>
+    adminClients: Map<WebSocket, ClientInfo>,
+    inactivityService: InactivityService
 ) {
     try {
         // Save message to database
@@ -243,6 +303,33 @@ export async function handleSendMessage(
                 sent_at: new Date().toISOString(),
             },
         };
+
+        let customerName = 'Cliente';
+        let adminName = 'Admin';
+
+        // Update inactivity tracker
+        // Need to find names if not in payload
+        if (payload.sender_type === 'customer') {
+            customerName = payload.sender_name;
+            // Find admin name if possible
+            for (const [_, info] of adminClients.entries()) {
+                if (info.conversationIds?.includes(payload.conversation_id)) {
+                    adminName = info.name || 'Admin';
+                    break;
+                }
+            }
+        } else {
+            adminName = payload.sender_name;
+            // Find customer name
+            for (const [_, info] of customerClients.entries()) {
+                if (info.conversationId === payload.conversation_id) {
+                    customerName = info.name || 'Cliente';
+                    break;
+                }
+            }
+        }
+        
+        inactivityService.updateActivity(payload.conversation_id, payload.sender_type, customerName, adminName);
 
         // Forward to the other party
         if (payload.sender_type === 'customer') {
@@ -284,7 +371,8 @@ export async function handleEndChat(
     ws: WebSocket,
     payload: EndChatPayload,
     customerClients: Map<WebSocket, ClientInfo>,
-    adminClients: Map<WebSocket, ClientInfo>
+    adminClients: Map<WebSocket, ClientInfo>,
+    inactivityService: InactivityService
 ) {
     try {
         // End conversation in database
@@ -322,6 +410,10 @@ export async function handleEndChat(
                 }
             }
         });
+
+        // Remove from inactivity tracker
+        inactivityService.removeConversation(payload.conversation_id);
+
     } catch (error) {
         console.error('Error ending chat:', error);
         ws.send(
@@ -335,11 +427,11 @@ export async function handleEndChat(
 
 export async function handleTyping(
     ws: WebSocket,
-    payload: any, // TypingPayload
+    payload: any,
     customerClients: Map<WebSocket, ClientInfo>,
     adminClients: Map<WebSocket, ClientInfo>
 ) {
-    const typingMessage = {
+    const typingData = {
         type: 'chat:typing',
         payload: {
             conversation_id: payload.conversation_id,
@@ -349,23 +441,21 @@ export async function handleTyping(
     };
 
     if (payload.sender_type === 'customer') {
-        // Notify admin
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (
                 clientInfo.conversationIds?.includes(payload.conversation_id) &&
                 adminWs.readyState === WebSocket.OPEN
             ) {
-                adminWs.send(JSON.stringify(typingMessage));
+                adminWs.send(JSON.stringify(typingData));
             }
         });
     } else {
-        // Notify customer
         Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
             if (
                 clientInfo.conversationId === payload.conversation_id &&
                 customerWs.readyState === WebSocket.OPEN
             ) {
-                customerWs.send(JSON.stringify(typingMessage));
+                customerWs.send(JSON.stringify(typingData));
             }
         });
     }
@@ -373,38 +463,34 @@ export async function handleTyping(
 
 export async function handleRead(
     ws: WebSocket,
-    payload: any, // ReadPayload
+    payload: any,
     customerClients: Map<WebSocket, ClientInfo>,
     adminClients: Map<WebSocket, ClientInfo>
 ) {
-    // TODO: Update message status in database if needed
-
-    const readMessage = {
+    const readData = {
         type: 'chat:read',
         payload: {
             conversation_id: payload.conversation_id,
-            reader_type: payload.reader_type,
+            sender_type: payload.sender_type,
         },
     };
 
-    if (payload.reader_type === 'customer') {
-        // Notify admin
+    if (payload.sender_type === 'customer') {
         Array.from(adminClients.entries()).forEach(([adminWs, clientInfo]) => {
             if (
                 clientInfo.conversationIds?.includes(payload.conversation_id) &&
                 adminWs.readyState === WebSocket.OPEN
             ) {
-                adminWs.send(JSON.stringify(readMessage));
+                adminWs.send(JSON.stringify(readData));
             }
         });
     } else {
-        // Notify customer
         Array.from(customerClients.entries()).forEach(([customerWs, clientInfo]) => {
             if (
                 clientInfo.conversationId === payload.conversation_id &&
                 customerWs.readyState === WebSocket.OPEN
             ) {
-                customerWs.send(JSON.stringify(readMessage));
+                customerWs.send(JSON.stringify(readData));
             }
         });
     }

@@ -13,6 +13,7 @@ import {
     handleAdminReactivateChat,
 } from './handlers/chat.handler';
 import { dbService } from './services/database.service';
+import { InactivityService } from './services/inactivity.service';
 import type { WebSocketMessage, ClientInfo } from './types/events';
 
 dotenv.config();
@@ -58,6 +59,78 @@ const wss = new WebSocketServer({ server });
 server.listen(PORT, () => {
     console.log(`WebSocket server started on port ${PORT}`);
 });
+
+// Initialize inactivity service
+const inactivityService = new InactivityService(
+    (conversationId: string, message: string) => {
+        // Warn Admin
+        const warning = JSON.stringify({
+            type: 'chat:message', // We send it as a message so it's visible
+            payload: {
+                conversation_id: conversationId,
+                sender_type: 'admin',
+                sender_name: 'Sistema',
+                message: message,
+                sent_at: new Date().toISOString(),
+            },
+        });
+        Array.from(adminClients.entries()).forEach(([ws, info]) => {
+            if (info.conversationIds?.includes(conversationId) && ws.readyState === WebSocket.OPEN) {
+                ws.send(warning);
+            }
+        });
+    },
+    (conversationId: string, message: string) => {
+        // Warn Customer
+        const warning = JSON.stringify({
+            type: 'chat:message',
+            payload: {
+                conversation_id: conversationId,
+                sender_type: 'admin',
+                sender_name: 'Sistema',
+                message: message,
+                sent_at: new Date().toISOString(),
+            },
+        });
+        Array.from(customerClients.entries()).forEach(([ws, info]) => {
+            if (info.conversationId === conversationId && ws.readyState === WebSocket.OPEN) {
+                ws.send(warning);
+            }
+        });
+    },
+    async (conversationId: string, reason: string) => {
+        // End Chat
+        try {
+            await dbService.endConversation(conversationId);
+            const endMsg = JSON.stringify({
+                type: 'chat:ended',
+                payload: {
+                    conversation_id: conversationId,
+                    message: reason,
+                },
+            });
+
+            // Notify everyone
+            Array.from(customerClients.entries()).forEach(([ws, info]) => {
+                if (info.conversationId === conversationId && ws.readyState === WebSocket.OPEN) {
+                    ws.send(endMsg);
+                }
+            });
+            Array.from(adminClients.entries()).forEach(([ws, info]) => {
+                if (info.conversationIds?.includes(conversationId) && ws.readyState === WebSocket.OPEN) {
+                    ws.send(endMsg);
+                    // Update client info
+                    if (info.conversationIds) {
+                        info.conversationIds = info.conversationIds.filter(id => id !== conversationId);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error in auto-end chat:', error);
+        }
+    }
+);
+inactivityService.start();
 
 wss.on('connection', (ws: WebSocket) => {
     console.log('New client connected');
@@ -112,9 +185,9 @@ wss.on('connection', (ws: WebSocket) => {
                 case 'admin:claim-chat':
                 case 'admin:reactivate-chat':
                     if (message.type === 'admin:claim-chat') {
-                        await handleAdminClaimChat(ws, message.payload, customerClients, adminClients);
+                        await handleAdminClaimChat(ws, message.payload, customerClients, adminClients, inactivityService);
                     } else {
-                        await handleAdminReactivateChat(ws, message.payload, customerClients, adminClients);
+                        await handleAdminReactivateChat(ws, message.payload, customerClients, adminClients, inactivityService);
                     }
                     
                     // Update admin client info with new conversation_id in the list
@@ -135,12 +208,13 @@ wss.on('connection', (ws: WebSocket) => {
                         ws,
                         message.payload,
                         customerClients,
-                        adminClients
+                        adminClients,
+                        inactivityService
                     );
                     break;
 
                 case 'chat:end':
-                    await handleEndChat(ws, message.payload, customerClients, adminClients);
+                    await handleEndChat(ws, message.payload, customerClients, adminClients, inactivityService);
                     break;
 
                 case 'chat:typing':
