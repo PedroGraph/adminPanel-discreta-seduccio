@@ -274,7 +274,7 @@ const ProductsContent = () => {
                               className="text-xs"
                               onClick={() => handleEdit(product)}
                             >
-                              <Edit className="h-3 w-3" />
+                              <Edit className="h-3 w-3 text-blue-400" />
                             </Button>
                             <Button
                               size="sm"
