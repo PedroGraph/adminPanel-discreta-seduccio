@@ -157,19 +157,44 @@ wss.on('connection', (ws: WebSocket) => {
                     break;
 
                 case 'auth:admin':
-                    // Admin authentication
-                    adminClients.set(ws, {
-                        type: 'admin',
-                        userId: message.payload?.user_id,
-                        name: message.payload?.name,
-                        conversationIds: [], // Start with empty list
-                    });
-                    ws.send(
-                        JSON.stringify({
-                            type: 'auth:success',
-                            payload: { client_type: 'admin' },
-                        })
-                    );
+                    try {
+                        // Admin authentication - persistence
+                        const adminId = message.payload?.user_id;
+                        if (adminId) {
+                            const activeConversations = await dbService.getActiveConversationsByAdmin(adminId);
+                            const conversationIds = activeConversations.map(c => c.id);
+                            
+                            adminClients.set(ws, {
+                                type: 'admin',
+                                userId: adminId,
+                                name: message.payload?.name,
+                                conversationIds: conversationIds,
+                            });
+                            
+                            ws.send(
+                                JSON.stringify({
+                                    type: 'auth:success',
+                                    payload: { 
+                                        client_type: 'admin',
+                                        active_conversations: activeConversations.map(c => ({
+                                            id: c.id,
+                                            customer_name: c.customer_name,
+                                            messages: c.messages.map((msg: any) => ({
+                                                sender_type: msg.sender_type,
+                                                sender_name: msg.sender_name,
+                                                message: msg.message,
+                                                sent_at: msg.sent_at.toISOString(),
+                                            }))
+                                        }))
+                                    },
+                                })
+                            );
+                            
+                            console.log(`Admin ${message.payload?.name} reconnected with ${conversationIds.length} active chats`);
+                        }
+                    } catch (error) {
+                        console.error('Error in admin auth:', error);
+                    }
                     break;
 
                 case 'customer:start-chat':
@@ -180,6 +205,9 @@ wss.on('connection', (ws: WebSocket) => {
                         conversationId: conversationId,
                         name: message.payload?.customer_name,
                     });
+                    
+                    // Start inactivity tracker immediately for the 3-minute waiting rule
+                    inactivityService.updateActivity(conversationId, 'customer', message.payload?.customer_name, '');
                     break;
 
                 case 'admin:claim-chat':

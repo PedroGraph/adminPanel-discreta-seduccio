@@ -91,6 +91,20 @@ export class DatabaseService {
         });
     }
 
+    async getActiveConversationsByAdmin(adminId: number) {
+        return await prisma.chatConversation.findMany({
+            where: {
+                assigned_to: adminId,
+                status: 'active',
+            },
+            include: {
+                messages: {
+                    orderBy: { sent_at: 'asc' }
+                }
+            }
+        });
+    }
+
     async getConversationById(conversationId: string) {
         return await prisma.chatConversation.findUnique({
             where: { id: conversationId },

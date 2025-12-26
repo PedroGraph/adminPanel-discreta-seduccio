@@ -19,12 +19,13 @@ export class InactivityService {
     ) {}
 
     updateActivity(conversationId: string, senderType: 'admin' | 'customer', customerName: string, adminName: string) {
+        const existing = this.tracker.get(conversationId);
         this.tracker.set(conversationId, {
             lastActivity: Date.now(),
             lastSender: senderType,
             warned: false,
-            customerName,
-            adminName
+            customerName: customerName || existing?.customerName || 'Cliente',
+            adminName: adminName || existing?.adminName || ''
         });
     }
 
@@ -52,6 +53,15 @@ export class InactivityService {
             const elapsed = now - info.lastActivity;
 
             if (info.lastSender === 'customer') {
+                // Check if it's a new chat waiting for an agent (no adminName yet)
+                if (!info.adminName || info.adminName === '') {
+                    if (elapsed >= 3 * 60 * 1000) { // 3 minutes wait time for an agent
+                        this.onEndChat(conversationId, 'No hay agentes disponibles en este momento. Por favor, intenta de nuevo más tarde.');
+                        this.tracker.delete(conversationId);
+                        continue;
+                    }
+                }
+
                 // Admin needs to respond
                 if (elapsed >= 5 * 60 * 1000) { // 5 minutes
                     this.onEndChat(conversationId, 'Chat finalizado automáticamente por inactividad del administrador.');

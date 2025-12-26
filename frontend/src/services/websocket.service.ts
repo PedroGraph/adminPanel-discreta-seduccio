@@ -111,6 +111,6 @@ export class WebSocketService {
 }
 
 // Singleton instance
-const wsService = new WebSocketService('ws://localhost:3000');
+const wsService = new WebSocketService('ws://localhost:4000');
 
 export default wsService;

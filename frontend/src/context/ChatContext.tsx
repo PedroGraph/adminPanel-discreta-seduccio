@@ -158,7 +158,40 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             }
         });
 
+        // Subscribe to auth:success to restore active conversations
+        const unsubscribeAuth = subscribe('auth:success', (data: any) => {
+            if (data.client_type === 'admin' && data.active_conversations) {
+                const restoredConversations: ActiveConversation[] = data.active_conversations.map((c: any) => ({
+                    conversation_id: c.id,
+                    customer_name: c.customer_name,
+                    messages: c.messages || [],
+                }));
+
+                setActiveConversations(restoredConversations);
+
+                // Keep windows open for restored chats if they were not explicitly closed
+                setOpenChatIds(prev => {
+                    const existingOpen = prev;
+                    const newOpen = restoredConversations.map(c => c.conversation_id);
+                    return [...new Set([...existingOpen, ...newOpen])];
+                });
+
+                // Also remove these from waiting chats if they happen to be there
+                const restoredIds = restoredConversations.map(c => c.conversation_id);
+                setWaitingChats(prev => prev.filter(chat => !restoredIds.includes(chat.conversation_id)));
+
+                if (restoredConversations.length > 0) {
+                    setSelectedConversationId(prev => prev || restoredConversations[0].conversation_id);
+                    toast({
+                        title: "Sesión restaurada",
+                        description: `Se han recuperado ${restoredConversations.length} chats activos`,
+                    });
+                }
+            }
+        });
+
         return () => {
+            unsubscribeAuth();
             unsubscribeNewChat();
             unsubscribeClaimed();
             unsubscribeNoLonger();

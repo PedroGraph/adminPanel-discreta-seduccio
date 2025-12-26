@@ -304,8 +304,8 @@ export async function handleSendMessage(
             },
         };
 
-        let customerName = 'Cliente';
-        let adminName = 'Admin';
+        let customerName = '';
+        let adminName = '';
 
         // Update inactivity tracker
         // Need to find names if not in payload
@@ -314,7 +314,7 @@ export async function handleSendMessage(
             // Find admin name if possible
             for (const [_, info] of adminClients.entries()) {
                 if (info.conversationIds?.includes(payload.conversation_id)) {
-                    adminName = info.name || 'Admin';
+                    adminName = info.name || '';
                     break;
                 }
             }
@@ -323,7 +323,7 @@ export async function handleSendMessage(
             // Find customer name
             for (const [_, info] of customerClients.entries()) {
                 if (info.conversationId === payload.conversation_id) {
-                    customerName = info.name || 'Cliente';
+                    customerName = info.name || '';
                     break;
                 }
             }
