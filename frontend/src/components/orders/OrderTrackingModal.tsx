@@ -15,56 +15,62 @@ interface OrderTrackingModalProps {
   order: Order | null;
 }
 
-const getTrackingSteps = (order: Order) => {
+import { useI18n } from "@/hooks/use-i18n";
+
+const getTrackingSteps = (order: Order, t: any) => {
+  const tr = t("order_tracking") as any;
   const steps = [
     {
       id: 1,
-      title: "Pedido Confirmado",
-      description: "Tu pedido ha sido confirmado y está siendo preparado",
+      title: tr.steps.confirmed.title,
+      description: tr.steps.confirmed.desc,
       icon: CheckCircle,
       completed: true,
       date: new Date(order.created_at).toLocaleString()
     },
     {
       id: 2,
-      title: "En Preparación",
-      description: "Estamos preparando tu pedido en nuestro almacén",
+      title: tr.steps.preparing.title,
+      description: tr.steps.preparing.desc,
       icon: Package,
       completed: ["processing", "shipped", "delivered"].includes(order.status),
-      date: ["processing", "shipped", "delivered"].includes(order.status) ? "Completado" : "Pendiente"
+      date: ["processing", "shipped", "delivered"].includes(order.status) ? tr.status.completed : tr.status.pending
     },
     {
       id: 3,
-      title: "Enviado",
-      description: "Tu pedido ha sido enviado y está en camino",
+      title: tr.steps.shipped.title,
+      description: tr.steps.shipped.desc,
       icon: Truck,
       completed: ["shipped", "delivered"].includes(order.status),
-      date: ["shipped", "delivered"].includes(order.status) ? (order.tracking_number ? `Tracking: ${order.tracking_number}` : "Enviado") : "Pendiente"
+      date: ["shipped", "delivered"].includes(order.status) ? (order.tracking_number ? `Tracking: ${order.tracking_number}` : tr.status.completed) : tr.status.pending
     },
     {
       id: 4,
-      title: "En Tránsito",
-      description: "Tu pedido está siendo transportado a su destino",
+      title: tr.steps.in_transit.title,
+      description: tr.steps.in_transit.desc,
       icon: MapPin,
-      completed: ["delivered"].includes(order.status), // Simplified logic
-      date: "En camino"
+      completed: ["delivered"].includes(order.status),
+      date: tr.status.in_route
     },
     {
       id: 5,
-      title: "Entregado",
-      description: "Tu pedido ha sido entregado exitosamente",
+      title: tr.steps.delivered.title,
+      description: tr.steps.delivered.desc,
       icon: CheckCircle,
       completed: order.status === "delivered",
-      date: order.status === "delivered" ? "Entregado" : "Pendiente"
+      date: order.status === "delivered" ? tr.status.delivered : tr.status.pending
     }
   ];
   return steps;
 };
 
 export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingModalProps) => {
+  const t = useI18n();
+  const tr = t("order_tracking") as any;
+
   if (!order) return null;
 
-  const trackingSteps = getTrackingSteps(order);
+  const trackingSteps = getTrackingSteps(order, t);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,7 +78,7 @@ export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingM
         <DialogHeader>
           <DialogTitle className="text-purple-200 flex items-center gap-2">
             <Truck className="h-5 w-5" />
-            Seguimiento de la Orden {order.id}
+            {tr.title} {order.id}
           </DialogTitle>
         </DialogHeader>
 
@@ -81,7 +87,7 @@ export const OrderTrackingModal = ({ open, onOpenChange, order }: OrderTrackingM
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-purple-200 font-semibold">{order.customer_name}</h3>
-                <p className="text-purple-400 text-sm">Fecha del pedido: {new Date(order.created_at).toLocaleDateString()}</p>
+                <p className="text-purple-400 text-sm">{tr.order_date}: {new Date(order.created_at).toLocaleDateString()}</p>
               </div>
               <Badge
                 variant="outline"

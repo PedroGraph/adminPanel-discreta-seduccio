@@ -1,9 +1,10 @@
-
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Activity } from "@/types/activity";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useI18n } from "@/hooks/use-i18n";
 
 interface ActivityLogItemProps {
   activity: Activity;
@@ -24,7 +25,16 @@ const getLevelBackgroundClasses = (level: Activity["level"]) => {
 
 export const ActivityLogItem = ({ activity, onViewDetails }: ActivityLogItemProps) => {
   const IconComponent = activity.icon;
-  const formattedTimestamp = format(new Date(activity.timestamp), "d 'de' MMMM 'de' yyyy - HH:mm", { locale: es });
+  const { language } = useLanguage();
+  const t = useI18n();
+  const header = t("activity_log_header") as any;
+  const dateLocale = language === 'es' ? es : enUS;
+
+  const dateFormat = language === 'es'
+    ? "d 'de' MMMM 'de' yyyy - HH:mm"
+    : "MMMM d, yyyy - HH:mm";
+
+  const formattedTimestamp = format(new Date(activity.timestamp), dateFormat, { locale: dateLocale });
 
   return (
     <div
@@ -33,11 +43,10 @@ export const ActivityLogItem = ({ activity, onViewDetails }: ActivityLogItemProp
       onClick={() => onViewDetails(activity)}
     >
       <div className="mt-1 p-2 rounded-full bg-black/20">
-        <IconComponent className={`h-4 w-4 ${
-          activity.level === "ERROR" ? "text-red-400" :
+        <IconComponent className={`h-4 w-4 ${activity.level === "ERROR" ? "text-red-400" :
           activity.level === "WARN" ? "text-yellow-400" :
-          "text-purple-400"
-        }`} />
+            "text-purple-400"
+          }`} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-4">
@@ -54,6 +63,7 @@ export const ActivityLogItem = ({ activity, onViewDetails }: ActivityLogItemProp
               onViewDetails(activity);
             }}
             className="text-purple-400 hover:text-purple-200 flex-shrink-0 hidden sm:flex"
+            title={header.details}
           >
             <Eye className="h-4 w-4" />
           </Button>

@@ -17,7 +17,12 @@ interface OrderDetailModalProps {
   order: Order | null;
 }
 
+import { useI18n } from "@/hooks/use-i18n";
+
 export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModalProps) => {
+  const t = useI18n();
+  const detail = t("order_detail") as any;
+
   if (!order) return null;
 
   const getStatusColor = (status: string) => {
@@ -41,7 +46,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
         <DialogHeader>
           <DialogTitle className="text-purple-200 flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Detalles de la Orden {order.id}
+            {detail.title} {order.id}
           </DialogTitle>
         </DialogHeader>
 
@@ -52,26 +57,26 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
               <CardHeader className="pb-3">
                 <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Información General
+                  {detail.general_info}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <span className="text-purple-400 text-sm">Estado:</span>
+                  <span className="text-purple-400 text-sm">{detail.status}:</span>
                   <Badge variant="outline" className={`ml-2 ${getStatusColor(order.status)}`}>
                     {order.status}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Fecha:</span>
+                  <span className="text-purple-400 text-sm">{detail.date}:</span>
                   <span className="text-purple-100 ml-2">{new Date(order.created_at).toLocaleDateString()}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Items:</span>
+                  <span className="text-purple-400 text-sm">{detail.items}:</span>
                   <span className="text-purple-100 ml-2">{order.items_count}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Total:</span>
+                  <span className="text-purple-400 text-sm">{detail.total}:</span>
                   <span className="text-purple-100 ml-2 font-semibold">${Number(order.total_amount).toFixed(2)}</span>
                 </div>
               </CardContent>
@@ -81,21 +86,21 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
               <CardHeader className="pb-3">
                 <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Información del Cliente
+                  {detail.customer_info}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <span className="text-purple-400 text-sm">Nombre:</span>
+                  <span className="text-purple-400 text-sm">{detail.name}:</span>
                   <span className="text-purple-100 ml-2">{order.customer_name}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Email:</span>
+                  <span className="text-purple-400 text-sm">{detail.email}:</span>
                   <span className="text-purple-100 ml-2">{order.customer_email}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Teléfono:</span>
-                  <span className="text-purple-100 ml-2">{order.phone || "No disponible"}</span>
+                  <span className="text-purple-400 text-sm">{detail.phone}:</span>
+                  <span className="text-purple-100 ml-2">{order.phone || detail.not_available}</span>
                 </div>
               </CardContent>
             </Card>
@@ -108,12 +113,12 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
             <CardHeader className="pb-3">
               <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                Dirección de Envío
+                {detail.shipping_address}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-purple-100">
-                {order.address || "No disponible"}
+                {order.address || detail.not_available}
               </p>
             </CardContent>
           </Card>
@@ -124,12 +129,12 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
               <CardHeader className="pb-3">
                 <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
-                  Método de Pago
+                  {detail.payment_method}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-purple-100">
-                  {order.payment_method || "No disponible"}
+                  {order.payment_method || detail.not_available}
                 </p>
               </CardContent>
             </Card>
@@ -137,7 +142,7 @@ export const OrderDetailModal = ({ open, onOpenChange, order }: OrderDetailModal
             {order.status === "shipped" && order.tracking_number && (
               <Card className="bg-gray-700 border-purple-600">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-purple-200 text-sm">Número de Seguimiento</CardTitle>
+                  <CardTitle className="text-purple-200 text-sm">{detail.tracking_number}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-purple-100 font-mono">

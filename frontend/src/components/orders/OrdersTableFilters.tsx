@@ -19,6 +19,8 @@ interface OrdersTableFiltersProps {
   setDateFilter: (value: string) => void;
 }
 
+import { useI18n } from "@/hooks/use-i18n";
+
 export const OrdersTableFilters = ({
   searchTerm,
   setSearchTerm,
@@ -27,12 +29,15 @@ export const OrdersTableFilters = ({
   dateFilter,
   setDateFilter,
 }: OrdersTableFiltersProps) => {
+  const t = useI18n();
+  const filters = t("orders_filters") as any;
+
   return (
     <div className="flex flex-col sm:flex-row gap-4">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400 h-4 w-4" />
         <Input
-          placeholder="Buscar órdenes por ID, cliente o email..."
+          placeholder={filters.search_placeholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10 bg-gray-800 border-purple-700 text-purple-100 placeholder:text-purple-400 focus:ring-2 focus:ring-purple-700 hover:border-purple-600 transition-colors"
@@ -41,27 +46,27 @@ export const OrdersTableFilters = ({
       <div className="flex gap-2">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-purple-700 text-purple-200 focus:ring-2 focus:ring-purple-700 hover:border-purple-600 transition-colors">
-            <SelectValue placeholder="Estado" className="text-purple-300" />
+            <SelectValue placeholder={filters.status} className="text-purple-300" />
           </SelectTrigger>
           <SelectContent className="bg-gray-800 text-purple-100 border-purple-700 z-30">
-            <SelectItem value="all" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">Todos los estados</SelectItem>
-            <SelectItem value="pending" className="text-blue-300 hover:bg-blue-900 focus:bg-blue-900">Pendiente</SelectItem>
-            <SelectItem value="processing" className="text-blue-300 hover:bg-blue-900 focus:bg-blue-900">Procesando</SelectItem>
-            <SelectItem value="shipped" className="text-blue-300 hover:bg-blue-900 focus:bg-blue-900">Enviado</SelectItem>
-            <SelectItem value="delivered" className="text-green-300 hover:bg-green-900 focus:bg-green-900">Completado</SelectItem>
-            <SelectItem value="cancelled" className="text-red-300 hover:bg-red-900 focus:bg-red-900">Cancelado</SelectItem>
+            <SelectItem value="all" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">{filters.all_status}</SelectItem>
+            <SelectItem value="pending" className="text-blue-300 hover:bg-blue-900 focus:bg-blue-900">{filters.pending}</SelectItem>
+            <SelectItem value="processing" className="text-blue-300 hover:bg-blue-900 focus:bg-blue-900">{filters.processing}</SelectItem>
+            <SelectItem value="shipped" className="text-blue-300 hover:bg-blue-900 focus:bg-blue-900">{filters.shipped}</SelectItem>
+            <SelectItem value="delivered" className="text-green-300 hover:bg-green-900 focus:bg-green-900">{filters.delivered}</SelectItem>
+            <SelectItem value="cancelled" className="text-red-300 hover:bg-red-900 focus:bg-red-900">{filters.cancelled}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={dateFilter} onValueChange={setDateFilter}>
           <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-purple-700 text-purple-200 focus:ring-2 focus:ring-purple-700 hover:border-purple-600 transition-colors">
-            <SelectValue placeholder="Fecha" />
+            <SelectValue placeholder={filters.date} />
           </SelectTrigger>
           <SelectContent className="bg-gray-800 text-purple-100 border-purple-700 z-30">
-            <SelectItem value="all" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">Todas las fechas</SelectItem>
-            <SelectItem value="today" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">Hoy</SelectItem>
-            <SelectItem value="week" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">Esta semana</SelectItem>
-            <SelectItem value="month" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">Este mes</SelectItem>
+            <SelectItem value="all" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">{filters.all_dates}</SelectItem>
+            <SelectItem value="today" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">{filters.today}</SelectItem>
+            <SelectItem value="week" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">{filters.week}</SelectItem>
+            <SelectItem value="month" className="text-purple-200 hover:bg-purple-900 focus:bg-purple-900">{filters.month}</SelectItem>
           </SelectContent>
         </Select>
 

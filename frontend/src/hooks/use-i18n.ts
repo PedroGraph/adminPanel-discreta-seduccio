@@ -8,6 +8,7 @@ const translations = {
     export_csv: "Exportar CSV",
     edit: "Editar",
     delete: "Eliminar",
+    close: "Cerrar",
     view: "Ver",
     add: "Añadir",
     search: "Buscar",
@@ -137,6 +138,12 @@ const translations = {
     new_customers: "Clientes nuevos",
     sold_products: "Productos vendidos",
     most_sold_products: "Productos más vendidos",
+    error_loading_stats: "Error al cargar las estadísticas",
+    unknown_error: "Error desconocido",
+    no_data_available: "No hay datos disponibles",
+    units: "unidades",
+    quantity: "Cantidad",
+    no_products_sold_data: "No hay datos de productos vendidos",
     weekly_conversion_rate: "Tasa de conversión semanal",
 
     //Users section
@@ -191,11 +198,566 @@ const translations = {
       send_credentials: "Enviar credenciales",
     },
 
-    //Login section
-    login_title: "Bienvenido",
-    login_subtitle: "Accede a tu panel de control",
-    forgot_password: "¿Olvidaste tu contraseña?",
-    price: "Precio",
+    // Products section
+    products_title: "Gestión de Productos",
+    products_subtitle: "Administra tu catálogo de productos",
+    total_products_label: "Total Productos",
+    total_products_sub: "En el catálogo",
+    active_products_label: "Productos Activos",
+    active_products_sub: "Disponibles",
+    inventory_value_label: "Valor Inventario",
+    inventory_value_sub: "Total en stock",
+    low_stock_label: "Stock Bajo",
+    low_stock_sub: "Requieren atención",
+    product_search_placeholder: "Buscar productos...",
+    all_categories: "Todas las categorías",
+    all_statuses: "Todos los estados",
+    new_product_button: "Nuevo Producto",
+    products_list_title: "Lista de Productos",
+    product_table: {
+      product: "Producto",
+      category: "Categoría",
+      price: "Precio",
+      stock: "Stock",
+      status: "Estado",
+      actions: "Acciones"
+    },
+    no_products_found: "No se encontraron productos",
+    pagination: {
+      showing: "Mostrando",
+      of: "de",
+      products: "productos",
+      previous: "Anterior",
+      next: "Siguiente"
+    },
+    product_form: {
+      add_title: "Añadir Nuevo Producto",
+      edit_title: "Editar Producto",
+      name: "Nombre del Producto",
+      name_placeholder: "Ingresa el nombre del producto",
+      category: "Categoría",
+      category_placeholder: "Selecciona una categoría",
+      price: "Precio",
+      original_price: "Precio Original",
+      stock: "Stock",
+      sku: "SKU",
+      description: "Descripción",
+      description_placeholder: "Describe el producto...",
+      tags: "Etiquetas",
+      tags_placeholder: "tag1, tag2, tag3",
+      status: "Estado",
+      status_placeholder: "Selecciona un estado",
+      save_changes: "Guardar Cambios",
+      add_product: "Añadir Producto",
+      cancel: "Cancelar"
+    },
+    product_images: {
+      title: "Imágenes del Producto",
+      drag_drop: "Arrastra las imágenes aquí o",
+      select_files: "selecciona archivos",
+      formats: "Formatos: JPG, PNG, GIF (máx. 5MB cada una)",
+      uploaded: "Imágenes Subidas",
+      main: "Principal"
+    },
+    product_delete: {
+      title: "Confirmar Eliminación",
+      warning: "¿Estás seguro de que quieres eliminar este producto?",
+      sub_warning: "Esta acción no se puede deshacer.",
+      to_delete: "Producto a eliminar:",
+      confirm: "Eliminar Producto",
+      success_title: "Producto eliminado",
+      success_description: "ha sido eliminado exitosamente."
+    },
+    product_status: {
+      active: "Activo",
+      inactive: "Agotado",
+      discontinued: "Descontinuado",
+      draft: "Borrador"
+    },
+
+    // Categories section
+    categories_title: "Gestión de Categorías",
+    categories_subtitle: "Organiza tus productos en categorías y subcategorías",
+    total_categories_label: "Total Categorías",
+    total_categories_sub: "Activas e inactivas",
+    active_categories_label: "Categorías Activas",
+    active_categories_sub: "Visibles en la tienda",
+    total_products_stat_label: "Productos Total",
+    total_products_stat_sub: "En todas las categorías",
+    category_search_placeholder: "Buscar categorías...",
+    new_category_button: "Nueva Categoría",
+    categories_list_title: "Lista de Categorías",
+    category_table: {
+      name: "Nombre",
+      description: "Descripción",
+      products: "Productos",
+      status: "Estado",
+      actions: "Acciones"
+    },
+    no_categories_found: "No se encontraron categorías",
+    category_form: {
+      create_title: "Crear Nueva Categoría",
+      edit_title: "Editar Categoría",
+      name: "Nombre",
+      slug: "Slug (URL amigable)",
+      slug_placeholder: "Se genera automáticamente si se deja vacío",
+      description: "Descripción",
+      parent_category: "Categoría Padre (opcional)",
+      select_parent: "Seleccionar categoría padre",
+      no_parent: "Sin categoría padre",
+      status: "Estado",
+      active: "Activa",
+      inactive: "Inactiva",
+      cancel: "Cancelar",
+      create_button: "Crear Categoría",
+      update_button: "Actualizar Categoría",
+      creating: "Creando...",
+      updating: "Actualizando..."
+    },
+    category_delete: {
+      title: "Eliminar Categoría",
+      warning: "¿Estás seguro de que deseas eliminar la categoría",
+      sub_warning: "Esta acción no se puede deshacer. Se eliminará la categoría y todas sus subcategorías.",
+      products_associated: "Esta categoría tiene productos asociados.",
+      confirm: "Eliminar",
+      deleting: "Eliminando...",
+    },
+
+    // Inventory section
+    inventory_title: "Gestión de Inventario",
+    inventory_subtitle: "Control de stock y movimientos de productos",
+    inventory_stats: {
+      total_value_label: "Valor Total Inventario",
+      total_value_sub: "Costo de productos en stock",
+      in_stock_label: "Productos en Stock",
+      in_stock_sub: "Con stock suficiente",
+      low_stock_label: "Stock Bajo",
+      low_stock_sub: "Requieren reabastecimiento",
+      out_of_stock_label: "Sin Stock",
+      out_of_stock_sub: "Productos agotados"
+    },
+    inventory_filters: {
+      title: "Filtros de Inventario",
+      search_placeholder: "Buscar por nombre o SKU...",
+      all: "Todos",
+      in_stock: "En Stock",
+      low_stock: "Stock Bajo",
+      out_of_stock: "Sin Stock",
+      add_movement: "Agregar Movimiento"
+    },
+    inventory_table: {
+      title: "Productos en Inventario",
+      filtered_by: "Filtrado por",
+      product: "Producto",
+      sku: "SKU",
+      current_stock: "Stock Actual",
+      min_max: "Min/Max",
+      status: "Estado",
+      value: "Valor",
+      no_products: "No se encontraron productos con los filtros aplicados"
+    },
+    inventory_movements: {
+      title: "Movimientos Recientes",
+      no_movements: "No hay movimientos recientes",
+      product_deleted: "Producto eliminado",
+      types: {
+        entrada: "Entrada",
+        salida: "Salida",
+        ajuste: "Ajuste"
+      }
+    },
+    inventory_form: {
+      title: "Agregar Movimiento de Inventario",
+      product: "Producto",
+      select_product: "Seleccionar producto",
+      type: "Tipo de Movimiento",
+      select_type: "Seleccionar tipo",
+      quantity: "Cantidad",
+      quantity_placeholder: "Ingrese la cantidad",
+      cost_per_unit: "Costo por Unidad (Opcional)",
+      reason: "Motivo",
+      reason_placeholder: "Describa el motivo del movimiento",
+      cancel: "Cancelar",
+      submit: "Crear Movimiento"
+    },
+
+    // Orders section
+    orders_title: "Órdenes",
+    orders_stats: {
+      total: "Total Órdenes",
+      pending: "Pendientes",
+      completed: "Completadas",
+      cancelled: "Canceladas"
+    },
+    orders_filters: {
+      search_placeholder: "Buscar órdenes por ID, cliente o email...",
+      status: "Estado",
+      date: "Fecha",
+      all_status: "Todos los estados",
+      pending: "Pendiente",
+      processing: "Procesando",
+      shipped: "Enviado",
+      delivered: "Completado",
+      cancelled: "Cancelado",
+      all_dates: "Todas las fechas",
+      today: "Hoy",
+      week: "Esta semana",
+      month: "Este mes"
+    },
+    orders_table: {
+      export_csv: "Exportar CSV",
+      header_order: "Orden",
+      header_customer: "Cliente",
+      header_date: "Fecha",
+      header_items: "Items",
+      header_total: "Total",
+      header_status: "Estado",
+      header_actions: "Acciones"
+    },
+    order_detail: {
+      title: "Detalles de la Orden",
+      general_info: "Información General",
+      customer_info: "Información del Cliente",
+      shipping_address: "Dirección de Envío",
+      payment_method: "Método de Pago",
+      tracking_number: "Número de Seguimiento",
+      status: "Estado",
+      date: "Fecha",
+      items: "Items",
+      total: "Total",
+      name: "Nombre",
+      email: "Email",
+      phone: "Teléfono",
+      not_available: "No disponible"
+    },
+    order_tracking: {
+      title: "Seguimiento de la Orden",
+      order_date: "Fecha del pedido",
+      steps: {
+        confirmed: {
+          title: "Pedido Confirmado",
+          desc: "Tu pedido ha sido confirmado y está siendo preparado"
+        },
+        preparing: {
+          title: "En Preparación",
+          desc: "Estamos preparando tu pedido en nuestro almacén"
+        },
+        shipped: {
+          title: "Enviado",
+          desc: "Tu pedido ha sido enviado y está en camino"
+        },
+        in_transit: {
+          title: "En Tránsito",
+          desc: "Tu pedido está siendo transportado a su destino"
+        },
+        delivered: {
+          title: "Entregado",
+          desc: "Tu pedido ha sido entregado exitosamente"
+        }
+      },
+      status: {
+        completed: "Completado",
+        pending: "Pendiente",
+        in_route: "En camino",
+        delivered: "Entregado"
+      }
+    },
+
+    // Returns section
+    returns_title: "Devoluciones",
+    returns_stats: {
+      total: "Total Devoluciones",
+      pending: "Pendientes",
+      approved: "Aprobadas",
+      rejected: "Rechazadas"
+    },
+    returns_filters: {
+      search_placeholder: "Buscar devoluciones por ID, orden, cliente o producto...",
+      status: "Estado",
+      type: "Tipo",
+      all_status: "Todos los estados",
+      pending: "Pendiente",
+      processing: "Procesando",
+      approved: "Aprobado",
+      rejected: "Rechazado",
+      all_types: "Todos los tipos",
+      refund: "Reembolso",
+      exchange: "Intercambio"
+    },
+    returns_table: {
+      header_return: "Devolución",
+      header_order: "Orden",
+      header_customer: "Cliente",
+      header_products: "Productos",
+      header_status: "Estado",
+      header_total: "Monto Total",
+      header_actions: "Acciones",
+      product_singular: "producto",
+      product_plural: "productos",
+      multiple: "Múltiple"
+    },
+    return_detail: {
+      title: "Detalles de la Devolución",
+      general_info: "Información General",
+      customer_info: "Información del Cliente",
+      products_list: "Productos a Devolver",
+      refund_process: "Proceso de Reembolso",
+      status: "Estado",
+      request_date: "Fecha de solicitud",
+      total_products: "Total productos",
+      total_amount: "Monto total",
+      customer_name: "Nombre",
+      original_order: "Orden original",
+      product: "Producto",
+      unknown_product: "Producto desconocido",
+      quantity: "Cantidad a devolver",
+      unit_price: "Precio unitario",
+      reason: "Motivo",
+      type: "Tipo",
+      subtotal: "Subtotal",
+      refund_approved_desc: "El reembolso será procesado en 3-5 días hábiles al método de pago original.",
+      refund_pending_desc: "La solicitud está siendo revisada por nuestro equipo.",
+      refund_processing_desc: "La devolución está siendo procesada.",
+      refund_rejected_desc: "La solicitud de devolución ha sido rechazada."
+    },
+
+    // Coupons section
+    coupons_title: "Gestión de Cupones",
+    coupons_subtitle: "Administra cupones de descuento y promociones",
+    new_coupon_button: "Nuevo Cupón",
+    coupons_stats: {
+      total: "Total Cupones",
+      active: "Activos",
+      usage_month: "Usos Este Mes",
+      total_savings: "Ahorro Total"
+    },
+    coupons_filters: {
+      search_placeholder: "Buscar cupones por código, nombre o categoría...",
+      status: "Estado",
+      type: "Tipo",
+      all: "Todos",
+      active: "Activo",
+      inactive: "Inactivo",
+      expired: "Expirado",
+      all_types: "Todos los tipos",
+      percentage: "Porcentaje",
+      fixed: "Fijo",
+      free_shipping: "Envío Gratis"
+    },
+    coupons_table: {
+      header_code: "Código",
+      header_name: "Nombre",
+      header_type: "Tipo",
+      header_value: "Valor",
+      header_usage: "Uso",
+      header_validity: "Vigencia",
+      header_status: "Estado",
+      header_actions: "Acciones",
+      status_active: "Activo",
+      status_inactive: "Inactivo",
+      status_expired: "Expirado",
+      status_unknown: "Desconocido",
+      type_percentage: "Porcentaje",
+      type_fixed: "Fijo",
+      type_free_shipping: "Envío Gratis",
+      free: "Gratis",
+      until: "hasta",
+      no_coupons: "No se encontraron cupones que coincidan con los filtros seleccionados."
+    },
+    coupon_detail: {
+      discount_section: "Descuento y Condiciones",
+      usage_section: "Estadísticas de Uso",
+      validity_section: "Vigencia",
+      type: "Tipo",
+      value: "Valor",
+      min_order: "Pedido mínimo",
+      max_discount: "Descuento máximo",
+      no_limit: "Sin límite",
+      current_usage: "Usos actuales",
+      usage_limit: "Límite de usos",
+      progress: "Progreso",
+      start_date: "Fecha de inicio",
+      end_date: "Fecha de fin",
+      category: "Categoría",
+      general: "General"
+    },
+
+    // Chat section
+    chat_title: "Chat Virtual",
+    chat_subtitle: "Gestión de chats en tiempo real con clientes",
+    chat_connected: "Conectado",
+    chat_disconnected: "Desconectado",
+    chat_live_tab: "Chat en Vivo",
+    chat_history_tab: "Historial",
+    chat_stats: {
+      active_chats: "Chats Activos",
+      waiting_chats: "En Espera",
+      status: "Estado",
+      conversations: "Conversaciones actuales",
+      waiting_attention: "Esperando atención",
+      websocket_server: "Servidor WebSocket"
+    },
+    chat_empty: {
+      select_chat: "Selecciona un chat",
+      no_active_chat: "No hay chat activo",
+      description: "Selecciona una conversación de la lista para gestionarla aquí, o usa el widget flotante."
+    },
+    chat_active_badge: "Activo",
+    chat_end_button: "Finalizar",
+    chat_no_messages: "No hay mensajes aún. Inicia la conversación.",
+    chat_no_messages_short: "Sin mensajes",
+    chat_typing: "Escribiendo...",
+    chat_placeholder: "Escribe un mensaje...",
+    chat_send: "Enviar",
+    chat_waiting_since: "Esperando desde",
+    chat_attend: "Atender",
+    chat_virtual_title: "Chat Virtual",
+    chat_no_activity: "No hay actividad reciente",
+
+    // Activity Log
+    activity_log_title: "Log de Actividades",
+    activity_log_subtitle: "Historial de todas las acciones realizadas en el sistema",
+    activity_log_search: "Buscar actividades...",
+    activity_log_category: "Categoría",
+    activity_log_all_categories: "Todas las categorías",
+    activity_log_user: "Usuario",
+    activity_log_all_users: "Todos los usuarios",
+    activity_log_header: {
+      action: "Acción",
+      target: "Objetivo",
+      user: "Usuario",
+      date: "Fecha",
+      details: "Ver Detalles"
+    },
+    activity_log_detail: {
+      title: "Detalles de la Actividad",
+      id: "ID de Actividad",
+      user: "Usuario",
+      action: "Acción",
+      target: "Objetivo",
+      category: "Categoría",
+      level: "Nivel",
+      date: "Fecha y Hora",
+      metadata: "Información Adicional"
+    },
+
+    // Reports section
+    reports_title: "Reportes Avanzados",
+    reports_subtitle: "Exportación de datos y reportes programados",
+    reports_export_title: "Exportar Datos",
+    reports_retention_title: "Métricas de Retención de Clientes",
+    reports_scheduled_title: "Reportes Programados",
+    reports_new_button: "Nuevo Reporte",
+    reports_types: {
+      label: "Tipo de Reporte",
+      sales: "Ventas",
+      inventory: "Inventario",
+      customers: "Clientes",
+      orders: "Órdenes",
+      retention: "Retención"
+    },
+    reports_date: {
+      start: "Fecha Inicio",
+      end: "Fecha Fin"
+    },
+    reports_generating: "Generando...",
+    reports_chart: {
+      new_customers: "Nuevos Clientes",
+      retention_rate: "Tasa de Retención %"
+    },
+    reports_table: {
+      header_name: "Nombre",
+      header_frequency: "Frecuencia",
+      header_last_run: "Última Ejecución",
+      header_next_run: "Próxima Ejecución",
+      header_status: "Estado",
+      header_format: "Formato",
+      header_actions: "Acciones",
+      run_button: "Ejecutar",
+      pause_button: "Pausar",
+      activate_button: "Activar",
+      status_active: "Activo",
+      status_paused: "Pausado"
+    },
+    reports_modal: {
+      title: "Crear Reporte Programado",
+      name_label: "Nombre del Reporte",
+      name_placeholder: "Ej: Reporte Mensual de Ventas",
+      type_label: "Tipo de Reporte",
+      type_placeholder: "Seleccionar tipo",
+      frequency_label: "Frecuencia",
+      frequency_placeholder: "Seleccionar frecuencia",
+      format_label: "Formato",
+      format_placeholder: "Seleccionar formato",
+      status_label: "Estado Inicial",
+      create_button: "Crear Reporte",
+      frequencies: {
+        daily: "Diario",
+        weekly: "Semanal",
+        monthly: "Mensual",
+        quarterly: "Trimestral",
+        yearly: "Anual"
+      }
+    },
+
+    // Settings
+    settings_title: "Configuración",
+    settings_subtitle: "Gestiona la configuración del sistema",
+    settings_tabs: {
+      general: "General",
+      email: "Email SMTP",
+      security: "Seguridad",
+      notifications: "Notificaciones"
+    },
+    settings_general: {
+      title: "Configuración General",
+      language: "Idioma",
+      site_name: "Nombre del Sitio",
+      site_url: "URL del Sitio",
+      description: "Descripción",
+      currency: "Moneda",
+      timezone: "Zona Horaria",
+      save_button: "Guardar Cambios"
+    },
+    settings_email: {
+      title: "Configuración SMTP",
+      host: "Servidor SMTP",
+      port: "Puerto",
+      user: "Usuario",
+      password: "Contraseña",
+      from_email: "Email Remitente",
+      use_ssl: "Usar SSL/TLS",
+      save_button: "Guardar Configuración SMTP"
+    },
+    settings_security: {
+      title: "Configuración de Seguridad",
+      two_factor: "Autenticación de Dos Factores",
+      two_factor_desc: "Requiere verificación adicional para iniciar sesión",
+      lockout: "Bloqueo por Intentos Fallidos",
+      lockout_desc: "Bloquea cuentas después de varios intentos fallidos",
+      detailed_log: "Log de Actividades Detallado",
+      detailed_log_desc: "Registra todas las acciones de los usuarios",
+      max_attempts: "Máximo Intentos de Login",
+      lockout_time: "Tiempo de Bloqueo (minutos)",
+      change_password: "Cambiar Contraseña",
+      new_password: "Nueva contraseña",
+      confirm_password: "Confirma nueva contraseña",
+      save_password: "Guardar Contraseña",
+      save_button: "Guardar Configuración de Seguridad"
+    },
+    settings_notifications: {
+      title: "Configuración de Notificaciones",
+      new_orders: "Nuevas Órdenes",
+      new_orders_desc: "Notificar cuando se reciba una nueva orden",
+      low_stock: "Stock Bajo",
+      low_stock_desc: "Notificar cuando el stock esté bajo",
+      new_users: "Nuevos Usuarios",
+      new_users_desc: "Notificar cuando se registre un nuevo usuario",
+      new_reviews: "Reseñas Nuevas",
+      new_reviews_desc: "Notificar cuando se publique una nueva reseña",
+      notification_email: "Email para Notificaciones",
+      save_button: "Guardar Configuración de Notificaciones"
+    }
   },
   en: {
     // Common
@@ -204,6 +766,7 @@ const translations = {
     export_csv: "Export CSV",
     edit: "Edit",
     delete: "Delete",
+    close: "Close",
     view: "View",
     add: "Add",
     search: "Search",
@@ -334,6 +897,12 @@ const translations = {
     sold_products: "Sold Products",
     most_sold_products: "Most Sold Products",
     weekly_conversion_rate: "Weekly Conversion Rate",
+    error_loading_stats: "Error loading statistics",
+    unknown_error: "Unknown error",
+    no_data_available: "No data available",
+    units: "units",
+    quantity: "Quantity",
+    no_products_sold_data: "No sold products data available",
 
     //Users section
     users_title: "User Management",
@@ -392,6 +961,567 @@ const translations = {
     login_subtitle: "Login to your account",
     forgot_password: "Forgot password?",
     price: "Price",
+
+    // Products section
+    products_title: "Product Management",
+    products_subtitle: "Manage your product catalog",
+    total_products_label: "Total Products",
+    total_products_sub: "In the catalog",
+    active_products_label: "Active Products",
+    active_products_sub: "Available",
+    inventory_value_label: "Inventory Value",
+    inventory_value_sub: "Total in stock",
+    low_stock_label: "Low Stock",
+    low_stock_sub: "Require attention",
+    product_search_placeholder: "Search products...",
+    all_categories: "All categories",
+    all_statuses: "All statuses",
+    new_product_button: "New Product",
+    products_list_title: "Product List",
+    product_table: {
+      product: "Product",
+      category: "Category",
+      price: "Price",
+      stock: "Stock",
+      status: "Status",
+      actions: "Actions"
+    },
+    no_products_found: "No products found",
+    pagination: {
+      showing: "Showing",
+      of: "of",
+      products: "products",
+      previous: "Previous",
+      next: "Next"
+    },
+    product_form: {
+      add_title: "Add New Product",
+      edit_title: "Edit Product",
+      name: "Product Name",
+      name_placeholder: "Enter product name",
+      category: "Category",
+      category_placeholder: "Select a category",
+      price: "Price",
+      original_price: "Original Price",
+      stock: "Stock",
+      sku: "SKU",
+      description: "Description",
+      description_placeholder: "Describe the product...",
+      tags: "Tags",
+      tags_placeholder: "tag1, tag2, tag3",
+      status: "Status",
+      status_placeholder: "Select a status",
+      save_changes: "Save Changes",
+      add_product: "Add Product",
+      cancel: "Cancel"
+    },
+    product_images: {
+      title: "Product Images",
+      drag_drop: "Drag images here or",
+      select_files: "select files",
+      formats: "Formats: JPG, PNG, GIF (max. 5MB each)",
+      uploaded: "Uploaded Images",
+      main: "Main"
+    },
+    product_delete: {
+      title: "Confirm Deletion",
+      warning: "Are you sure you want to delete this product?",
+      sub_warning: "This action cannot be undone.",
+      to_delete: "Product to delete:",
+      confirm: "Delete Product",
+      success_title: "Product deleted",
+      success_description: "has been deleted successfully."
+    },
+    product_status: {
+      active: "Active",
+      inactive: "Out of Stock",
+      discontinued: "Discontinued",
+      draft: "Draft"
+    },
+
+    // Categories section
+    categories_title: "Categories Management",
+    categories_subtitle: "Organize your products into categories and subcategories",
+    total_categories_label: "Total Categories",
+    total_categories_sub: "Active and inactive",
+    active_categories_label: "Active Categories",
+    active_categories_sub: "Visible in store",
+    total_products_stat_label: "Total Products",
+    total_products_stat_sub: "In all categories",
+    category_search_placeholder: "Search categories...",
+    new_category_button: "New Category",
+    categories_list_title: "Categories List",
+    category_table: {
+      name: "Name",
+      description: "Description",
+      products: "Products",
+      status: "Status",
+      actions: "Actions"
+    },
+    no_categories_found: "No categories found",
+    category_form: {
+      create_title: "Create New Category",
+      edit_title: "Edit Category",
+      name: "Name",
+      slug: "Slug (Friendly URL)",
+      slug_placeholder: "Auto-generated if left empty",
+      description: "Description",
+      parent_category: "Parent Category (optional)",
+      select_parent: "Select parent category",
+      no_parent: "No parent category",
+      status: "Status",
+      active: "Active",
+      inactive: "Inactive",
+      cancel: "Cancel",
+      create_button: "Create Category",
+      update_button: "Update Category",
+      creating: "Creating...",
+      updating: "Updating..."
+    },
+    category_delete: {
+      title: "Delete Category",
+      warning: "Are you sure you want to delete the category",
+      sub_warning: "This action cannot be undone. The category and all its subcategories will be removed.",
+      products_associated: "This category has associated products.",
+      confirm: "Delete",
+      deleting: "Deleting...",
+    },
+
+    // Inventory section
+    inventory_title: "Inventory Management",
+    inventory_subtitle: "Control stock and product movements",
+    inventory_stats: {
+      total_value_label: "Total Inventory Value",
+      total_value_sub: "Cost of products in stock",
+      in_stock_label: "Products in Stock",
+      in_stock_sub: "Sufficient stock",
+      low_stock_label: "Low Stock",
+      low_stock_sub: "Require replenishment",
+      out_of_stock_label: "Out of Stock",
+      out_of_stock_sub: "Sold out products"
+    },
+    inventory_filters: {
+      title: "Inventory Filters",
+      search_placeholder: "Search by name or SKU...",
+      all: "All",
+      in_stock: "In Stock",
+      low_stock: "Low Stock",
+      out_of_stock: "Out of Stock",
+      add_movement: "Add Movement"
+    },
+    inventory_table: {
+      title: "Products in Inventory",
+      filtered_by: "Filtered by",
+      product: "Product",
+      sku: "SKU",
+      current_stock: "Current Stock",
+      min_max: "Min/Max",
+      status: "Status",
+      value: "Price",
+      no_products: "No products found with the applied filters"
+    },
+    inventory_movements: {
+      title: "Recent Movements",
+      no_movements: "No recent movements",
+      product_deleted: "Product deleted",
+      types: {
+        entrada: "Entry",
+        salida: "Exit",
+        ajuste: "Adjustment"
+      }
+    },
+    inventory_form: {
+      title: "Add Inventory Movement",
+      product: "Product",
+      select_product: "Select product",
+      type: "Movement Type",
+      select_type: "Select type",
+      quantity: "Quantity",
+      quantity_placeholder: "Enter quantity",
+      cost_per_unit: "Cost per Unit (Optional)",
+      reason: "Reason",
+      reason_placeholder: "Describe the reason for the movement",
+      cancel: "Cancel",
+      submit: "Create Movement"
+    },
+
+    // Orders section
+    orders_title: "Orders",
+    orders_stats: {
+      total: "Total Orders",
+      pending: "Pending",
+      completed: "Completed",
+      cancelled: "Cancelled"
+    },
+    orders_filters: {
+      search_placeholder: "Search orders by ID, customer or email...",
+      status: "Status",
+      date: "Date",
+      all_status: "All statuses",
+      pending: "Pending",
+      processing: "Processing",
+      shipped: "Shipped",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+      all_dates: "All dates",
+      today: "Today",
+      week: "This week",
+      month: "This month"
+    },
+    orders_table: {
+      export_csv: "Export CSV",
+      header_order: "Order",
+      header_customer: "Customer",
+      header_date: "Date",
+      header_items: "Items",
+      header_total: "Total",
+      header_status: "Status",
+      header_actions: "Actions"
+    },
+    order_detail: {
+      title: "Order Details",
+      general_info: "General Information",
+      customer_info: "Customer Information",
+      shipping_address: "Shipping Address",
+      payment_method: "Payment Method",
+      tracking_number: "Tracking Number",
+      status: "Status",
+      date: "Date",
+      items: "Items",
+      total: "Total",
+      name: "Name",
+      email: "Email",
+      phone: "Phone",
+      not_available: "Not available"
+    },
+    order_tracking: {
+      title: "Order Tracking",
+      order_date: "Order date",
+      steps: {
+        confirmed: {
+          title: "Order Confirmed",
+          desc: "Your order has been confirmed and is being prepared"
+        },
+        preparing: {
+          title: "In Preparation",
+          desc: "We are preparing your order in our warehouse"
+        },
+        shipped: {
+          title: "Shipped",
+          desc: "Your order has been shipped and is on its way"
+        },
+        in_transit: {
+          title: "In Transit",
+          desc: "Your order is being transported to its destination"
+        },
+        delivered: {
+          title: "Delivered",
+          desc: "Your order has been successfully delivered"
+        }
+      },
+      status: {
+        completed: "Completed",
+        pending: "Pending",
+        in_route: "En route",
+        delivered: "Delivered"
+      }
+    },
+
+    // Returns section
+    returns_title: "Returns",
+    returns_stats: {
+      total: "Total Returns",
+      pending: "Pending",
+      approved: "Approved",
+      rejected: "Rejected"
+    },
+    returns_filters: {
+      search_placeholder: "Search returns by ID, order, customer or product...",
+      status: "Status",
+      type: "Type",
+      all_status: "All statuses",
+      pending: "Pending",
+      processing: "Processing",
+      approved: "Approved",
+      rejected: "Rejected",
+      all_types: "All types",
+      refund: "Refund",
+      exchange: "Exchange"
+    },
+    returns_table: {
+      header_return: "Return",
+      header_order: "Order",
+      header_customer: "Customer",
+      header_products: "Products",
+      header_status: "Status",
+      header_total: "Total Amount",
+      header_actions: "Actions",
+      product_singular: "product",
+      product_plural: "products",
+      multiple: "Multiple"
+    },
+    return_detail: {
+      title: "Return Details",
+      general_info: "General Information",
+      customer_info: "Customer Information",
+      products_list: "Products to Return",
+      refund_process: "Refund Process",
+      status: "Status",
+      request_date: "Request date",
+      total_products: "Total products",
+      total_amount: "Total amount",
+      customer_name: "Name",
+      original_order: "Original order",
+      product: "Product",
+      unknown_product: "Unknown product",
+      quantity: "Quantity to return",
+      unit_price: "Unit price",
+      reason: "Reason",
+      type: "Type",
+      subtotal: "Subtotal",
+      refund_approved_desc: "The refund will be processed in 3-5 business days to the original payment method.",
+      refund_pending_desc: "The request is being reviewed by our team.",
+      refund_processing_desc: "The return is being processed.",
+      refund_rejected_desc: "The return request has been rejected."
+    },
+
+    // Coupons section
+    coupons_title: "Coupons Management",
+    coupons_subtitle: "Manage discount coupons and promotions",
+    new_coupon_button: "New Coupon",
+    coupons_stats: {
+      total: "Total Coupons",
+      active: "Active",
+      usage_month: "Usage This Month",
+      total_savings: "Total Savings"
+    },
+    coupons_filters: {
+      search_placeholder: "Search coupons by code, name or category...",
+      status: "Status",
+      type: "Type",
+      all: "All",
+      active: "Active",
+      inactive: "Inactive",
+      expired: "Expired",
+      all_types: "All types",
+      percentage: "Percentage",
+      fixed: "Fixed",
+      free_shipping: "Free Shipping"
+    },
+    coupons_table: {
+      header_code: "Code",
+      header_name: "Name",
+      header_type: "Type",
+      header_value: "Value",
+      header_usage: "Usage",
+      header_validity: "Validity",
+      header_status: "Status",
+      header_actions: "Actions",
+      status_active: "Active",
+      status_inactive: "Inactive",
+      status_expired: "Expired",
+      status_unknown: "Unknown",
+      type_percentage: "Percentage",
+      type_fixed: "Fixed",
+      type_free_shipping: "Free Shipping",
+      free: "Free",
+      until: "until",
+      no_coupons: "No coupons found matching the selected filters."
+    },
+    coupon_detail: {
+      discount_section: "Discount and Conditions",
+      usage_section: "Usage Statistics",
+      validity_section: "Validity",
+      type: "Type",
+      value: "Value",
+      min_order: "Minimum order",
+      max_discount: "Maximum discount",
+      no_limit: "No limit",
+      current_usage: "Current usage",
+      usage_limit: "Usage limit",
+      progress: "Progress",
+      start_date: "Start date",
+      end_date: "End date",
+      category: "Category",
+      general: "General"
+    },
+
+    // Chat section
+    chat_title: "Virtual Chat",
+    chat_subtitle: "Real-time chat management with customers",
+    chat_connected: "Connected",
+    chat_disconnected: "Disconnected",
+    chat_live_tab: "Live Chat",
+    chat_history_tab: "History",
+    chat_stats: {
+      active_chats: "Active Chats",
+      waiting_chats: "Waiting",
+      status: "Status",
+      conversations: "Current conversations",
+      waiting_attention: "Waiting for attention",
+      websocket_server: "WebSocket Server"
+    },
+    chat_empty: {
+      select_chat: "Select a chat",
+      no_active_chat: "No active chat",
+      description: "Select a conversation from the list to manage it here, or use the floating widget."
+    },
+    chat_active_badge: "Active",
+    chat_end_button: "End Chat",
+    chat_no_messages: "No messages yet. Start the conversation.",
+    chat_no_messages_short: "No messages",
+    chat_typing: "Typing...",
+    chat_placeholder: "Type a message...",
+    chat_send: "Send",
+    chat_waiting_since: "Waiting since",
+    chat_attend: "Attend",
+    chat_virtual_title: "Virtual Chat",
+    chat_no_activity: "No recent activity",
+
+    // Activity Log
+    activity_log_title: "Activity Log",
+    activity_log_subtitle: "History of all actions performed in the system",
+    activity_log_search: "Search activities...",
+    activity_log_category: "Category",
+    activity_log_all_categories: "All categories",
+    activity_log_user: "User",
+    activity_log_all_users: "All users",
+    activity_log_header: {
+      action: "Action",
+      target: "Target",
+      user: "User",
+      date: "Date",
+      details: "View Details"
+    },
+    activity_log_detail: {
+      title: "Activity Details",
+      id: "Activity ID",
+      user: "User",
+      action: "Action",
+      target: "Target",
+      category: "Category",
+      level: "Level",
+      date: "Date & Time",
+      metadata: "Additional Information"
+    },
+
+    // Reports section
+    reports_title: "Advanced Reports",
+    reports_subtitle: "Data export and scheduled reports",
+    reports_export_title: "Export Data",
+    reports_retention_title: "Customer Retention Metrics",
+    reports_scheduled_title: "Scheduled Reports",
+    reports_new_button: "New Report",
+    reports_types: {
+      label: "Report Type",
+      sales: "Sales",
+      inventory: "Inventory",
+      customers: "Customers",
+      orders: "Orders",
+      retention: "Retention"
+    },
+    reports_date: {
+      start: "Start Date",
+      end: "End Date"
+    },
+    reports_generating: "Generating...",
+    reports_chart: {
+      new_customers: "New Customers",
+      retention_rate: "Retention Rate %"
+    },
+    reports_table: {
+      header_name: "Name",
+      header_frequency: "Frequency",
+      header_last_run: "Last Run",
+      header_next_run: "Next Run",
+      header_status: "Status",
+      header_format: "Format",
+      header_actions: "Actions",
+      run_button: "Run",
+      pause_button: "Pause",
+      activate_button: "Activate",
+      status_active: "Active",
+      status_paused: "Paused"
+    },
+    reports_modal: {
+      title: "Create Scheduled Report",
+      name_label: "Report Name",
+      name_placeholder: "e.g., Monthly Sales Report",
+      type_label: "Report Type",
+      type_placeholder: "Select type",
+      frequency_label: "Frequency",
+      frequency_placeholder: "Select frequency",
+      format_label: "Format",
+      format_placeholder: "Select format",
+      status_label: "Initial Status",
+      create_button: "Create Report",
+      frequencies: {
+        daily: "Daily",
+        weekly: "Weekly",
+        monthly: "Monthly",
+        quarterly: "Quarterly",
+        yearly: "Yearly"
+      }
+    },
+
+    // Settings
+    settings_title: "Settings",
+    settings_subtitle: "Manage system configuration",
+    settings_tabs: {
+      general: "General",
+      email: "Email SMTP",
+      security: "Security",
+      notifications: "Notifications"
+    },
+    settings_general: {
+      title: "General Configuration",
+      language: "Language",
+      site_name: "Site Name",
+      site_url: "Site URL",
+      description: "Description",
+      currency: "Currency",
+      timezone: "Timezone",
+      save_button: "Save Changes"
+    },
+    settings_email: {
+      title: "SMTP Configuration",
+      host: "SMTP Server",
+      port: "Port",
+      user: "User",
+      password: "Password",
+      from_email: "Sender Email",
+      use_ssl: "Use SSL/TLS",
+      save_button: "Save SMTP Configuration"
+    },
+    settings_security: {
+      title: "Security Configuration",
+      two_factor: "Two-Factor Authentication",
+      two_factor_desc: "Requires additional verification to log in",
+      lockout: "Lockout on Failed Attempts",
+      lockout_desc: "Locks accounts after several failed attempts",
+      detailed_log: "Detailed Activity Log",
+      detailed_log_desc: "Records all user actions",
+      max_attempts: "Max Login Attempts",
+      lockout_time: "Lockout Time (minutes)",
+      change_password: "Change Password",
+      new_password: "New password",
+      confirm_password: "Confirm new password",
+      save_password: "Save Password",
+      save_button: "Save Security Configuration"
+    },
+    settings_notifications: {
+      title: "Notification Configuration",
+      new_orders: "New Orders",
+      new_orders_desc: "Notify when a new order is received",
+      low_stock: "Low Stock",
+      low_stock_desc: "Notify when stock is low",
+      new_users: "New Users",
+      new_users_desc: "Notify when a new user registers",
+      new_reviews: "New Reviews",
+      new_reviews_desc: "Notify when a new review is published",
+      notification_email: "Notification Email",
+      save_button: "Save Notification Configuration"
+    }
   },
 };
 

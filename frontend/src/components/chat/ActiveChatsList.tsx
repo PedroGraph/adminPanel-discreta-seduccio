@@ -1,5 +1,5 @@
+import { useI18n } from "@/hooks/use-i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, User } from "lucide-react";
 
@@ -22,6 +22,9 @@ export const ActiveChatsList = ({
     onSelectChat,
     compact = false
 }: ActiveChatsListProps) => {
+    const t = useI18n();
+    const tr = t("chat_stats") as any;
+
     if (activeConversations.length === 0) {
         return null;
     }
@@ -33,8 +36,8 @@ export const ActiveChatsList = ({
                     key={chat.conversation_id}
                     onClick={() => onSelectChat(chat.conversation_id)}
                     className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${selectedConversationId === chat.conversation_id
-                            ? 'bg-blue-900/40 border border-blue-500/50'
-                            : 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
+                        ? 'bg-blue-900/40 border border-blue-500/50'
+                        : 'bg-gray-800 border border-gray-700 hover:bg-gray-750'
                         }`}
                 >
                     <div className="flex items-center gap-3 w-full overflow-hidden">
@@ -46,7 +49,7 @@ export const ActiveChatsList = ({
                             <div className="text-gray-400 text-xs truncate">
                                 {chat.messages.length > 0
                                     ? chat.messages[chat.messages.length - 1].message
-                                    : 'Sin mensajes'}
+                                    : t("chat_no_messages_short")}
                             </div>
                         </div>
                         {selectedConversationId === chat.conversation_id && (
@@ -61,7 +64,9 @@ export const ActiveChatsList = ({
     if (compact) {
         return (
             <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-400 mb-2 px-1">Chats Activos ({activeConversations.length})</h3>
+                <h3 className="text-sm font-medium text-gray-400 mb-2 px-1">
+                    {tr.active_chats} ({activeConversations.length})
+                </h3>
                 {Content}
             </div>
         );
@@ -72,7 +77,7 @@ export const ActiveChatsList = ({
             <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                     <MessageCircle className="h-5 w-5 text-blue-400" />
-                    Chats Activos
+                    {tr.active_chats}
                     <Badge className="bg-blue-600 text-white ml-2">
                         {activeConversations.length}
                     </Badge>

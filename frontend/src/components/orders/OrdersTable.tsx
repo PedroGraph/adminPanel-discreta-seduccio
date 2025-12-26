@@ -22,11 +22,24 @@ interface OrdersTableProps {
 
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
+import { useI18n } from "@/hooks/use-i18n";
+
 export const OrdersTable = ({ orders, onViewDetails, onViewTracking, isLoading }: OrdersTableProps) => {
+  const t = useI18n();
+  const table = t("orders_table") as any;
+
   // Export CSV
   const handleExportCSV = () => {
     const csv = [
-      ["ID", "Cliente", "Email", "Fecha", "Total", "Estado", "Items"],
+      [
+        table.header_order,
+        table.header_customer,
+        "Email",
+        table.header_date,
+        table.header_total,
+        table.header_status,
+        table.header_items
+      ],
       ...orders.map(o =>
         [
           o.id, o.customer_name, o.customer_email, o.created_at, o.total_amount, o.status, o.items_count,
@@ -36,7 +49,7 @@ export const OrdersTable = ({ orders, onViewDetails, onViewTracking, isLoading }
     const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    link.download = "ordenes.csv";
+    link.download = `orders_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 
@@ -47,18 +60,18 @@ export const OrdersTable = ({ orders, onViewDetails, onViewTracking, isLoading }
         className="mb-2 bg-gray-800 border-gray-600 text-white hover:bg-green-700 hover:border-green-600 hover:text-white"
         onClick={handleExportCSV}
       >
-        <FileText className="h-4 w-4 mr-1" /> Exportar CSV
+        <FileText className="h-4 w-4 mr-1" /> {table.export_csv}
       </Button>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-purple-300">Orden</TableHead>
-            <TableHead className="text-purple-300">Cliente</TableHead>
-            <TableHead className="text-purple-300 hidden md:table-cell">Fecha</TableHead>
-            <TableHead className="text-purple-300 hidden lg:table-cell">Items</TableHead>
-            <TableHead className="text-purple-300">Total</TableHead>
-            <TableHead className="text-purple-300">Estado</TableHead>
-            <TableHead className="text-right text-purple-300">Acciones</TableHead>
+            <TableHead className="text-purple-300">{table.header_order}</TableHead>
+            <TableHead className="text-purple-300">{table.header_customer}</TableHead>
+            <TableHead className="text-purple-300 hidden md:table-cell">{table.header_date}</TableHead>
+            <TableHead className="text-purple-300 hidden lg:table-cell">{table.header_items}</TableHead>
+            <TableHead className="text-purple-300">{table.header_total}</TableHead>
+            <TableHead className="text-purple-300">{table.header_status}</TableHead>
+            <TableHead className="text-right text-purple-300">{table.header_actions}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

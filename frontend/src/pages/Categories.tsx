@@ -18,8 +18,10 @@ import { CreateCategoryModal } from "@/components/categories/CreateCategoryModal
 import { EditCategoryModal } from "@/components/categories/EditCategoryModal";
 import { DeleteCategoryModal } from "@/components/categories/DeleteCategoryModal";
 import { CategoriesSkeleton } from "@/components/categories/CategoriesSkeleton";
+import { useI18n } from "@/hooks/use-i18n";
 
 export const Categories = () => {
+  const t = useI18n();
   const { categories, stats, loading, fetchCategories } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -68,6 +70,11 @@ export const Categories = () => {
     return status === 'active' ? 'bg-green-600' : 'bg-gray-600';
   };
 
+  const getStatusLabel = (status: string) => {
+    const form = t("category_form") as any;
+    return status === 'active' ? form.active : form.inactive;
+  };
+
   const getIndentation = (level: number) => {
     return `pl-${level * 6}`;
   };
@@ -89,46 +96,46 @@ export const Categories = () => {
   return (
     <div className="p-6 bg-gray-800 min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Gestión de Categorías</h1>
-        <p className="text-gray-400">Organiza tus productos en categorías y subcategorías</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t("categories_title")}</h1>
+        <p className="text-gray-400">{t("categories_subtitle")}</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Card className="bg-gray-700 border-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-300">Total Categorías</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-300">{t("total_categories_label")}</CardTitle>
             <FolderTree className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.total}</div>
-            <p className="text-xs text-blue-400">Activas e inactivas</p>
+            <p className="text-xs text-blue-400">{t("total_categories_sub")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gray-700 border-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-300">Categorías Activas</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-300">{t("active_categories_label")}</CardTitle>
             <Eye className="h-4 w-4 text-green-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
               {stats.activeCount}
             </div>
-            <p className="text-xs text-green-400">Visibles en la tienda</p>
+            <p className="text-xs text-green-400">{t("active_categories_sub")}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gray-700 border-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-300">Productos Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-purple-300">{t("total_products_stat_label")}</CardTitle>
             <Package className="h-4 w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
               {stats.totalProducts}
             </div>
-            <p className="text-xs text-purple-400">En todas las categorías</p>
+            <p className="text-xs text-purple-400">{t("total_products_stat_sub")}</p>
           </CardContent>
         </Card>
       </div>
@@ -140,7 +147,7 @@ export const Categories = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar categorías..."
+                placeholder={t("category_search_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 bg-gray-800 border-gray-600 text-white"
@@ -151,7 +158,7 @@ export const Categories = () => {
               className="bg-purple-700 hover:bg-purple-600"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Nueva Categoría
+              {t("new_category_button")}
             </Button>
           </div>
         </CardContent>
@@ -160,18 +167,18 @@ export const Categories = () => {
       {/* Categories Table */}
       <Card className="bg-gray-700 border-gray-600">
         <CardHeader>
-          <CardTitle className="text-white">Lista de Categorías</CardTitle>
+          <CardTitle className="text-white">{t("categories_list_title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-600">
-                  <th className="text-left p-3 text-gray-300">Nombre</th>
-                  <th className="text-left p-3 text-gray-300">Descripción</th>
-                  <th className="text-center p-3 text-gray-300">Productos</th>
-                  <th className="text-center p-3 text-gray-300">Estado</th>
-                  <th className="text-center p-3 text-gray-300">Acciones</th>
+                  <th className="text-left p-3 text-gray-300">{(t("category_table") as any).name}</th>
+                  <th className="text-left p-3 text-gray-300">{(t("category_table") as any).description}</th>
+                  <th className="text-center p-3 text-gray-300">{(t("category_table") as any).products}</th>
+                  <th className="text-center p-3 text-gray-300">{(t("category_table") as any).status}</th>
+                  <th className="text-center p-3 text-gray-300">{(t("category_table") as any).actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -199,7 +206,7 @@ export const Categories = () => {
                     </td>
                     <td className="p-3 text-center">
                       <Badge className={`text-white ${getStatusColor(category.status)}`}>
-                        {category.status}
+                        {getStatusLabel(category.status)}
                       </Badge>
                     </td>
                     <td className="p-3 text-center">
@@ -228,7 +235,7 @@ export const Categories = () => {
             </table>
             {filteredCategories.length === 0 && (
               <div className="text-center py-8 text-gray-400">
-                No se encontraron categorías
+                {t("no_categories_found")}
               </div>
             )}
           </div>

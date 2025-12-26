@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { useI18n } from "@/hooks/use-i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Send, X, User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
     sender_type: 'customer' | 'admin';
@@ -31,6 +33,8 @@ export const ActiveChat = ({
     onTyping,
     compact = false,
 }: ActiveChatProps & { isTyping?: boolean; onTyping?: (isTyping: boolean) => void; compact?: boolean }) => {
+    const t = useI18n();
+    const { language } = useLanguage();
     const [inputMessage, setInputMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -79,6 +83,14 @@ export const ActiveChat = ({
         }
     };
 
+    const formatTime = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleTimeString(language === 'es' ? 'es-ES' : 'en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     const Content = (
         <>
             {!compact && (
@@ -88,7 +100,7 @@ export const ActiveChat = ({
                             <User className="h-4 w-4 text-white" />
                         </div>
                         {customerName}
-                        <Badge className="bg-green-600 text-white ml-2">Activo</Badge>
+                        <Badge className="bg-green-600 text-white ml-2">{t("chat_active_badge")}</Badge>
                     </CardTitle>
                     <Button
                         variant="ghost"
@@ -97,7 +109,7 @@ export const ActiveChat = ({
                         className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                     >
                         <X className="h-4 w-4 mr-1" />
-                        Finalizar
+                        {t("chat_end_button")}
                     </Button>
                 </CardHeader>
             )}
@@ -107,7 +119,7 @@ export const ActiveChat = ({
                     <div className={`bg-gray-800 rounded-lg p-4 overflow-y-auto mb-4 space-y-3 ${compact ? "flex-1" : "h-96"}`}>
                         {messages.length === 0 ? (
                             <div className="text-center text-gray-400 mt-8">
-                                <p>No hay mensajes aún. Inicia la conversación.</p>
+                                <p>{t("chat_no_messages")}</p>
                             </div>
                         ) : (
                             messages.map((msg, index) => (
@@ -124,7 +136,7 @@ export const ActiveChat = ({
                                         <div className="text-xs opacity-75 mb-1">{msg.sender_name}</div>
                                         <div className="break-words text-sm">{msg.message}</div>
                                         <div className="text-xs opacity-60 mt-1 flex justify-between items-center gap-2">
-                                            <span>{new Date(msg.sent_at).toLocaleTimeString()}</span>
+                                            <span>{formatTime(msg.sent_at)}</span>
                                             {msg.sender_type === 'admin' && (
                                                 <span className="text-blue-200 text-[10px]">✓✓</span>
                                             )}
@@ -136,7 +148,7 @@ export const ActiveChat = ({
                         {isTyping && (
                             <div className="flex justify-start">
                                 <div className="bg-gray-700 text-gray-400 rounded-lg p-3 text-sm italic">
-                                    Escribiendo...
+                                    {t("chat_typing")}
                                 </div>
                             </div>
                         )}
@@ -149,7 +161,7 @@ export const ActiveChat = ({
                             value={inputMessage}
                             onChange={handleInputChange}
                             onKeyPress={handleKeyPress}
-                            placeholder="Escribe un mensaje..."
+                            placeholder={t("chat_placeholder")}
                             className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
                         />
                         <Button
@@ -157,6 +169,7 @@ export const ActiveChat = ({
                             disabled={!inputMessage.trim()}
                             className="bg-blue-600 hover:bg-blue-500 text-white"
                             size={compact ? "icon" : "default"}
+                            title={t("chat_send")}
                         >
                             <Send className="h-4 w-4" />
                         </Button>

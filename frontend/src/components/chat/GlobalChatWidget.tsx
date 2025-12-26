@@ -6,8 +6,12 @@ import { MessageCircle, X, Minimize2, Maximize2 } from "lucide-react";
 import { ActiveChat } from "./ActiveChat";
 import { WaitingChats } from "./WaitingChats";
 import { ActiveChatsList } from "./ActiveChatsList";
+import { useI18n } from "@/hooks/use-i18n";
 
 export const GlobalChatWidget = () => {
+    const t = useI18n();
+    const stats = t("chat_stats") as any;
+
     const {
         waitingChats,
         activeConversations,
@@ -55,7 +59,7 @@ export const GlobalChatWidget = () => {
                         >
                             <div className="flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5 text-blue-400" />
-                                <CardTitle className="text-xs font-semibold text-white truncate">Chat Virtual</CardTitle>
+                                <CardTitle className="text-xs font-semibold text-white truncate">{t("chat_virtual_title")}</CardTitle>
                                 {isConnected && <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>}
                             </div>
                             <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
@@ -70,7 +74,7 @@ export const GlobalChatWidget = () => {
                         {!isMainMinimized && (
                             <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
                                 <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
-                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 px-1">Chats Activos</h3>
+                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 px-1">{stats.active_chats}</h3>
                                     <ActiveChatsList
                                         activeConversations={activeConversations}
                                         selectedConversationId={null}
@@ -78,7 +82,7 @@ export const GlobalChatWidget = () => {
                                         compact={true}
                                     />
 
-                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 px-1 mt-6">En Espera</h3>
+                                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 px-1 mt-6">{stats.waiting_chats}</h3>
                                     <WaitingChats
                                         waitingChats={waitingChats}
                                         onClaim={claimChat}
@@ -86,7 +90,7 @@ export const GlobalChatWidget = () => {
                                     />
                                     {waitingChats.length === 0 && activeConversations.length === 0 && (
                                         <div className="text-center py-12 text-gray-500 text-sm">
-                                            No hay actividad reciente
+                                            {t("chat_no_activity")}
                                         </div>
                                     )}
                                 </div>
@@ -134,6 +138,8 @@ const ChatWindow = ({
     isMinimized: boolean,
     onToggleMinimize: () => void
 }) => {
+    const t = useI18n();
+
     return (
         <Card className={`flex flex-col shadow-2xl border-gray-700 bg-gray-800 transition-all duration-300 ${isMinimized ? 'h-11 translate-y-0 overflow-hidden' : 'h-[450px]'}`}>
             <CardHeader
@@ -147,7 +153,7 @@ const ChatWindow = ({
                     <CardTitle className="text-xs font-semibold text-white truncate">
                         {chat.customer_name}
                     </CardTitle>
-                    {isTyping && <span className="text-[10px] text-blue-300 animate-pulse italic text-xs">escribiendo...</span>}
+                    {isTyping && <span className="text-[10px] text-blue-300 animate-pulse italic text-xs">{t("chat_typing")}</span>}
                 </div>
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <Button
@@ -156,7 +162,7 @@ const ChatWindow = ({
                         className="h-7 px-2 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-900/40 border border-red-900/30 font-bold"
                         onClick={onEnd}
                     >
-                        Finalizar
+                        {t("chat_end_button")}
                     </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-white" onClick={onToggleMinimize}>
                         {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}

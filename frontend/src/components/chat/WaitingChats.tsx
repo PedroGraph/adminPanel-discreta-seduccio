@@ -1,7 +1,9 @@
+import { useI18n } from "@/hooks/use-i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Clock, User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WaitingChat {
     conversation_id: string;
@@ -17,9 +19,21 @@ interface WaitingChatsProps {
 }
 
 export const WaitingChats = ({ waitingChats, onClaim, compact = false }: WaitingChatsProps) => {
+    const t = useI18n();
+    const { language } = useLanguage();
+    const tr = t("chat_stats") as any;
+
     if (waitingChats.length === 0) {
         return null;
     }
+
+    const formatTime = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleTimeString(language === 'es' ? 'es-ES' : 'en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     const Content = (
         <div className="space-y-3">
@@ -40,7 +54,9 @@ export const WaitingChats = ({ waitingChats, onClaim, compact = false }: Waiting
                             <div className="text-gray-500 text-xs flex items-center gap-1 mt-1">
                                 <Clock className="h-3 w-3" />
                                 <span className="truncate">
-                                    {compact ? new Date(chat.started_at).toLocaleTimeString() : `Esperando desde ${new Date(chat.started_at).toLocaleTimeString()}`}
+                                    {compact
+                                        ? formatTime(chat.started_at)
+                                        : `${t("chat_waiting_since")} ${formatTime(chat.started_at)}`}
                                 </span>
                             </div>
                         </div>
@@ -49,7 +65,7 @@ export const WaitingChats = ({ waitingChats, onClaim, compact = false }: Waiting
                         onClick={() => onClaim(chat.conversation_id)}
                         className={`bg-yellow-600 hover:bg-yellow-500 text-white ${compact ? 'w-full text-xs h-8' : ''}`}
                     >
-                        Atender
+                        {t("chat_attend")}
                     </Button>
                 </div>
             ))}
@@ -65,7 +81,7 @@ export const WaitingChats = ({ waitingChats, onClaim, compact = false }: Waiting
             <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                     <MessageCircle className="h-5 w-5 text-yellow-400" />
-                    Chats en Espera
+                    {tr.waiting_chats}
                     <Badge className="bg-yellow-600 text-white ml-2">
                         {waitingChats.length}
                     </Badge>

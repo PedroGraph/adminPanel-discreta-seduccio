@@ -14,7 +14,10 @@ interface CreateCategoryModalProps {
   onSuccess?: () => void;
 }
 
+import { useI18n } from "@/hooks/use-i18n";
+
 export const CreateCategoryModal = ({ open, onOpenChange, onSuccess }: CreateCategoryModalProps) => {
+  const t = useI18n();
   const { categories, createCategory } = useCategories();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -60,12 +63,12 @@ export const CreateCategoryModal = ({ open, onOpenChange, onSuccess }: CreateCat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg bg-gray-900 border-gray-700">
         <DialogHeader>
-          <DialogTitle className="text-white">Crear Nueva Categoría</DialogTitle>
+          <DialogTitle className="text-white">{(t("category_form") as any).create_title}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name" className="text-white">Nombre *</Label>
+            <Label htmlFor="name" className="text-white">{(t("category_form") as any).name}</Label>
             <Input
               id="name"
               value={formData.name}
@@ -76,18 +79,18 @@ export const CreateCategoryModal = ({ open, onOpenChange, onSuccess }: CreateCat
           </div>
 
           <div>
-            <Label htmlFor="slug" className="text-white">Slug (URL amigable)</Label>
+            <Label htmlFor="slug" className="text-white">{(t("category_form") as any).slug}</Label>
             <Input
               id="slug"
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              placeholder="Se genera automáticamente si se deja vacío"
+              placeholder={(t("category_form") as any).slug_placeholder}
               className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-white">Descripción</Label>
+            <Label htmlFor="description" className="text-white">{(t("category_form") as any).description}</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -98,16 +101,16 @@ export const CreateCategoryModal = ({ open, onOpenChange, onSuccess }: CreateCat
           </div>
 
           <div>
-            <Label htmlFor="parentId" className="text-white">Categoría Padre (opcional)</Label>
+            <Label htmlFor="parentId" className="text-white">{(t("category_form") as any).parent_category}</Label>
             <Select
               value={formData.parentId?.toString() || "none"}
               onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? null : parseInt(value) })}
             >
               <SelectTrigger className="bg-gray-800 border-gray-600 text-white focus:border-purple-500 focus:ring-purple-500">
-                <SelectValue placeholder="Seleccionar categoría padre" />
+                <SelectValue placeholder={(t("category_form") as any).select_parent} />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
-                <SelectItem value="none" className="text-white hover:bg-gray-700 focus:bg-gray-700">Sin categoría padre</SelectItem>
+                <SelectItem value="none" className="text-white hover:bg-gray-700 focus:bg-gray-700">{(t("category_form") as any).no_parent}</SelectItem>
                 {parentCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id.toString()} className="text-white hover:bg-gray-700 focus:bg-gray-700">
                     {category.name}
@@ -119,14 +122,14 @@ export const CreateCategoryModal = ({ open, onOpenChange, onSuccess }: CreateCat
 
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <Label htmlFor="status" className="text-white">Estado</Label>
+              <Label htmlFor="status" className="text-white">{(t("category_form") as any).status}</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as "active" | "inactive" })}>
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white focus:border-purple-500 focus:ring-purple-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem value="active" className="text-white hover:bg-gray-700 focus:bg-gray-700">Activa</SelectItem>
-                  <SelectItem value="inactive" className="text-white hover:bg-gray-700 focus:bg-gray-700">Inactiva</SelectItem>
+                  <SelectItem value="active" className="text-white hover:bg-gray-700 focus:bg-gray-700">{(t("category_form") as any).active}</SelectItem>
+                  <SelectItem value="inactive" className="text-white hover:bg-gray-700 focus:bg-gray-700">{(t("category_form") as any).inactive}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -134,10 +137,10 @@ export const CreateCategoryModal = ({ open, onOpenChange, onSuccess }: CreateCat
 
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-gray-600 text-gray-300 hover:bg-gray-800">
-              Cancelar
+              {(t("category_form") as any).cancel}
             </Button>
             <Button type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white">
-              {loading ? "Creando..." : "Crear Categoría"}
+              {loading ? (t("category_form") as any).creating : (t("category_form") as any).create_button}
             </Button>
           </div>
         </form>

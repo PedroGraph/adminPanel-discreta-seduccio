@@ -22,6 +22,7 @@ import { Upload, X, Star, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useProducts } from "./products/ProductsProvider";
 import { toast } from "sonner";
+import { useI18n } from "@/hooks/use-i18n";
 
 interface ProductImage {
   id: string;
@@ -36,6 +37,7 @@ interface AddProductModalProps {
 }
 
 export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) => {
+  const t = useI18n();
   const { addProduct } = useProducts();
   const [images, setImages] = useState<ProductImage[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -238,28 +240,28 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-700 border-purple-700 text-purple-100">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-purple-100">Añadir Nuevo Producto</DialogTitle>
+          <DialogTitle className="text-2xl text-purple-100">{(t("product_form") as any).add_title}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Formulario */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name" className="text-purple-200">Nombre del Producto</Label>
+              <Label htmlFor="name" className="text-purple-200">{(t("product_form") as any).name}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="bg-gray-800 border-purple-700 text-purple-100"
-                placeholder="Ingresa el nombre del producto"
+                placeholder={(t("product_form") as any).name_placeholder}
               />
             </div>
 
             <div>
-              <Label htmlFor="category" className="text-purple-200">Categoría</Label>
+              <Label htmlFor="category" className="text-purple-200">{(t("product_form") as any).category}</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="bg-gray-800 border-purple-700 text-purple-200">
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder={(t("product_form") as any).category_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 text-purple-100 border-purple-700">
                   <SelectItem value="Electrónicos">Electrónicos</SelectItem>
@@ -272,80 +274,80 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="price" className="text-purple-200">Precio</Label>
+                <Label htmlFor="price" className="text-purple-200">{(t("product_form") as any).price}</Label>
                 <Input
                   id="price"
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="0.00"
+                  placeholder={(t("product_form") as any).price_placeholder}
                 />
               </div>
               <div>
-                <Label htmlFor="originalPrice" className="text-purple-200">Precio Original</Label>
+                <Label htmlFor="originalPrice" className="text-purple-200">{(t("product_form") as any).original_price}</Label>
                 <Input
                   id="originalPrice"
                   type="number"
                   value={formData.originalPrice}
                   onChange={(e) => setFormData(prev => ({ ...prev, originalPrice: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="0.00"
+                  placeholder={(t("product_form") as any).original_price_placeholder}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="stock" className="text-purple-200">Stock</Label>
+                <Label htmlFor="stock" className="text-purple-200">{(t("product_form") as any).stock}</Label>
                 <Input
                   id="stock"
                   type="number"
                   value={formData.stock}
                   onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="0"
+                  placeholder={(t("product_form") as any).stock_placeholder}
                 />
               </div>
               <div>
-                <Label htmlFor="sku" className="text-purple-200">SKU</Label>
+                <Label htmlFor="sku" className="text-purple-200">{(t("product_form") as any).sku}</Label>
                 <Input
                   id="sku"
                   value={formData.sku}
                   onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="SKU-001"
+                  placeholder={(t("product_form") as any).sku_placeholder}
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="description" className="text-purple-200">Descripción</Label>
+              <Label htmlFor="description" className="text-purple-200">{(t("product_form") as any).description}</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 className="bg-gray-800 border-purple-700 text-purple-100"
-                placeholder="Describe el producto..."
+                placeholder={(t("product_form") as any).description_placeholder}
                 rows={3}
               />
             </div>
 
             <div>
-              <Label htmlFor="tags" className="text-purple-200">Etiquetas</Label>
+              <Label htmlFor="tags" className="text-purple-200">{(t("product_form") as any).tags}</Label>
               <Input
                 id="tags"
                 value={formData.tags}
                 onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                 className="bg-gray-800 border-purple-700 text-purple-100"
-                placeholder="tag1, tag2, tag3"
+                placeholder={(t("product_form") as any).tags_placeholder}
               />
             </div>
           </div>
 
           {/* Sección de imágenes */}
           <div className="space-y-4">
-            <Label className="text-purple-200">Imágenes del Producto</Label>
+            <Label className="text-purple-200">{(t("product_images") as any).title}</Label>
 
             {/* Zona de drag and drop */}
             <div
@@ -359,16 +361,16 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
             >
               <Upload className="h-8 w-8 mx-auto mb-2 text-purple-400" />
               <p className="text-purple-300 mb-2">
-                Arrastra las imágenes aquí o{" "}
+                {(t("product_images") as any).drag_drop}{" "}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="text-purple-400 hover:text-purple-300 underline"
                 >
-                  selecciona archivos
+                  {(t("product_images") as any).select_files}
                 </button>
               </p>
-              <p className="text-sm text-purple-500">Formatos: JPG, PNG, GIF (máx. 5MB cada una)</p>
+              <p className="text-sm text-purple-500">{(t("product_images") as any).formats}</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -382,7 +384,7 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
             {/* Vista previa de imágenes */}
             {images.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-purple-200 font-medium">Imágenes Subidas</h4>
+                <h4 className="text-purple-200 font-medium">{(t("product_images") as any).uploaded}</h4>
                 <div className="grid grid-cols-2 gap-3">
                   {images.map((image) => (
                     <div
@@ -400,7 +402,7 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
                       {image.isMain && (
                         <Badge className="absolute top-1 left-1 bg-purple-700 text-purple-100 text-xs">
                           <Star className="h-3 w-3 mr-1" />
-                          Principal
+                          {(t("product_images") as any).main}
                         </Badge>
                       )}
 
@@ -430,13 +432,13 @@ export const AddProductModal = ({ open, onOpenChange }: AddProductModalProps) =>
             onClick={() => onOpenChange(false)}
             className="border-purple-700 text-purple-400 hover:bg-purple-900"
           >
-            Cancelar
+            {(t("product_form") as any).cancel}
           </Button>
           <Button
             onClick={handleSubmit}
             className="bg-purple-700 hover:bg-purple-600 text-purple-100"
           >
-            Añadir Producto
+            {(t("product_form") as any).add_product}
           </Button>
         </DialogFooter>
       </DialogContent>

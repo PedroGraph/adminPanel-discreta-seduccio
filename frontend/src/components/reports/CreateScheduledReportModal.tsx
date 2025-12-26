@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useI18n } from "@/hooks/use-i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,11 +31,16 @@ interface CreateScheduledReportModalProps {
   }) => void;
 }
 
-export const CreateScheduledReportModal = ({ 
-  open, 
-  onOpenChange, 
-  onCreateReport 
+export const CreateScheduledReportModal = ({
+  open,
+  onOpenChange,
+  onCreateReport
 }: CreateScheduledReportModalProps) => {
+  const t = useI18n();
+  const tr = t("reports_modal") as any;
+  const types = t("reports_types") as any;
+  const table = t("reports_table") as any;
+
   const [formData, setFormData] = useState({
     name: '',
     frequency: '',
@@ -65,17 +70,17 @@ export const CreateScheduledReportModal = ({
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Crear Reporte Programado
+            {tr.title}
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label className="text-white">Nombre del Reporte</Label>
+            <Label className="text-white">{tr.name_label}</Label>
             <Input
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="Ej: Reporte Mensual de Ventas"
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder={tr.name_placeholder}
               className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
               required
             />
@@ -83,33 +88,33 @@ export const CreateScheduledReportModal = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-white">Tipo de Reporte</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+              <Label className="text-white">{tr.type_label}</Label>
+              <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                  <SelectValue placeholder="Seleccionar tipo" />
+                  <SelectValue placeholder={tr.type_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                  <SelectItem value="sales">Ventas</SelectItem>
-                  <SelectItem value="inventory">Inventario</SelectItem>
-                  <SelectItem value="customers">Clientes</SelectItem>
-                  <SelectItem value="orders">Órdenes</SelectItem>
-                  <SelectItem value="retention">Retención</SelectItem>
+                  <SelectItem value="sales">{types.sales}</SelectItem>
+                  <SelectItem value="inventory">{types.inventory}</SelectItem>
+                  <SelectItem value="customers">{types.customers}</SelectItem>
+                  <SelectItem value="orders">{types.orders}</SelectItem>
+                  <SelectItem value="retention">{types.retention}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label className="text-white">Frecuencia</Label>
-              <Select value={formData.frequency} onValueChange={(value) => setFormData({...formData, frequency: value})}>
+              <Label className="text-white">{tr.frequency_label}</Label>
+              <Select value={formData.frequency} onValueChange={(value) => setFormData({ ...formData, frequency: value })}>
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                  <SelectValue placeholder="Seleccionar frecuencia" />
+                  <SelectValue placeholder={tr.frequency_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                  <SelectItem value="Diario">Diario</SelectItem>
-                  <SelectItem value="Semanal">Semanal</SelectItem>
-                  <SelectItem value="Mensual">Mensual</SelectItem>
-                  <SelectItem value="Trimestral">Trimestral</SelectItem>
-                  <SelectItem value="Anual">Anual</SelectItem>
+                  <SelectItem value="Diario">{tr.frequencies.daily}</SelectItem>
+                  <SelectItem value="Semanal">{tr.frequencies.weekly}</SelectItem>
+                  <SelectItem value="Mensual">{tr.frequencies.monthly}</SelectItem>
+                  <SelectItem value="Trimestral">{tr.frequencies.quarterly}</SelectItem>
+                  <SelectItem value="Anual">{tr.frequencies.yearly}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -117,10 +122,10 @@ export const CreateScheduledReportModal = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-white">Formato</Label>
-              <Select value={formData.format} onValueChange={(value) => setFormData({...formData, format: value})}>
+              <Label className="text-white">{tr.format_label}</Label>
+              <Select value={formData.format} onValueChange={(value) => setFormData({ ...formData, format: value })}>
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                  <SelectValue placeholder="Seleccionar formato" />
+                  <SelectValue placeholder={tr.format_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600 text-white">
                   <SelectItem value="PDF">PDF</SelectItem>
@@ -131,14 +136,14 @@ export const CreateScheduledReportModal = ({
             </div>
 
             <div>
-              <Label className="text-white">Estado Inicial</Label>
-              <Select value={formData.status} onValueChange={(value: 'Activo' | 'Pausado') => setFormData({...formData, status: value})}>
+              <Label className="text-white">{tr.status_label}</Label>
+              <Select value={formData.status} onValueChange={(value: 'Activo' | 'Pausado') => setFormData({ ...formData, status: value })}>
                 <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Pausado">Pausado</SelectItem>
+                  <SelectItem value="Activo">{table.status_active}</SelectItem>
+                  <SelectItem value="Pausado">{table.status_paused}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -151,14 +156,14 @@ export const CreateScheduledReportModal = ({
               onClick={() => onOpenChange(false)}
               className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-purple-700 hover:bg-purple-600 text-white"
             >
               <FileText className="h-4 w-4 mr-2" />
-              Crear Reporte
+              {tr.create_button}
             </Button>
           </DialogFooter>
         </form>

@@ -10,6 +10,8 @@ import {
 import { Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+import { useI18n } from "@/hooks/use-i18n";
+
 interface DeleteProductModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -22,12 +24,13 @@ interface DeleteProductModalProps {
 
 export const DeleteProductModal = ({ open, onOpenChange, product, onConfirm }: DeleteProductModalProps) => {
   const { toast } = useToast();
+  const t = useI18n();
 
   const handleDelete = () => {
     onConfirm();
     toast({
-      title: "Producto eliminado",
-      description: `${product?.name} ha sido eliminado exitosamente.`,
+      title: (t("product_delete") as any).success_title,
+      description: `${product?.name} ${(t("product_delete") as any).success_description}`,
     });
     onOpenChange(false);
   };
@@ -40,25 +43,25 @@ export const DeleteProductModal = ({ open, onOpenChange, product, onConfirm }: D
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-400" />
-            Confirmar Eliminación
+            {(t("product_delete") as any).title}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="flex items-center gap-3 p-4 bg-red-900/20 border border-red-700 rounded-lg">
             <Trash2 className="h-6 w-6 text-red-400" />
             <div>
               <p className="font-medium text-red-200">
-                ¿Estás seguro de que quieres eliminar este producto?
+                {(t("product_delete") as any).warning}
               </p>
               <p className="text-sm text-red-300 mt-1">
-                Esta acción no se puede deshacer.
+                {(t("product_delete") as any).sub_warning}
               </p>
             </div>
           </div>
-          
+
           <div className="bg-gray-700 p-3 rounded border border-gray-600">
-            <p className="text-gray-300 text-sm">Producto a eliminar:</p>
+            <p className="text-gray-300 text-sm">{(t("product_delete") as any).to_delete}</p>
             <p className="text-white font-semibold">{product.name}</p>
           </div>
         </div>
@@ -69,7 +72,7 @@ export const DeleteProductModal = ({ open, onOpenChange, product, onConfirm }: D
             onClick={() => onOpenChange(false)}
             className="bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
           >
-            Cancelar
+            {(t("product_form") as any).cancel}
           </Button>
           <Button
             variant="destructive"
@@ -77,7 +80,7 @@ export const DeleteProductModal = ({ open, onOpenChange, product, onConfirm }: D
             className="bg-red-600 hover:bg-red-700 text-white"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Eliminar Producto
+            {(t("product_delete") as any).confirm}
           </Button>
         </DialogFooter>
       </DialogContent>

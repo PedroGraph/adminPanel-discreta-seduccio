@@ -4,22 +4,26 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, Loader2, AlertCircle } from "lucide-react";
 import { useI18n } from "@/hooks/use-i18n";
 import { useAnalytics } from "@/hooks/use-analytics";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PRODUCT_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe'];
 
 export const Analytics = () => {
   const t = useI18n();
+  const { language } = useLanguage();
   const { data: analytics, isLoading, error } = useAnalytics();
 
+  const locale = language === 'es' ? 'es-ES' : 'en-US';
+
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'USD',
     }).format(value);
   };
 
   const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('es-CO').format(value);
+    return new Intl.NumberFormat(locale).format(value);
   };
 
   if (isLoading) {
@@ -51,8 +55,8 @@ export const Analytics = () => {
       <div className="p-6 bg-gray-800 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-400 mb-2">Error al cargar las estadísticas</p>
-          <p className="text-gray-500 text-sm">{error instanceof Error ? error.message : 'Error desconocido'}</p>
+          <p className="text-red-400 mb-2">{t("error_loading_stats")}</p>
+          <p className="text-gray-500 text-sm">{error instanceof Error ? error.message : t("unknown_error")}</p>
         </div>
       </div>
     );
@@ -61,7 +65,7 @@ export const Analytics = () => {
   if (!analytics) {
     return (
       <div className="p-6 bg-gray-800 min-h-screen flex items-center justify-center">
-        <p className="text-gray-400">No hay datos disponibles</p>
+        <p className="text-gray-400">{t("no_data_available")}</p>
       </div>
     );
   }
@@ -215,13 +219,13 @@ export const Analytics = () => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`${value} unidades`, 'Cantidad']}
+                    formatter={(value: number) => [`${value} ${t("units")}`, t("quantity")]}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[300px] text-gray-400">
-                No hay datos de productos vendidos
+                {t("no_products_sold_data")}
               </div>
             )}
           </CardContent>

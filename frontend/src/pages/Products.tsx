@@ -20,8 +20,10 @@ import { EditProductModal } from "@/components/EditProductModal";
 import { DeleteProductModal } from "@/components/products/DeleteProductModal";
 import { ProductsStatsSkeleton, ProductsTableSkeleton } from "@/components/products/ProductsSkeleton";
 import { toast } from "sonner";
+import { useI18n } from "@/hooks/use-i18n";
 
 const ProductsContent = () => {
+  const t = useI18n();
   const {
     products,
     filteredProducts,
@@ -56,10 +58,11 @@ const ProductsContent = () => {
   };
 
   const getStatusLabel = (status: string) => {
+    const statusObj = t("product_status") as any;
     switch (status.toLowerCase()) {
-      case 'active': return 'Activo';
-      case 'inactive': return 'Agotado';
-      case 'discontinued': return 'Descontinuado';
+      case 'active': return statusObj.active;
+      case 'inactive': return statusObj.inactive;
+      case 'discontinued': return statusObj.discontinued;
       default: return status;
     }
   };
@@ -92,8 +95,8 @@ const ProductsContent = () => {
   return (
     <div className="p-6 bg-gray-800 min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Gestión de Productos</h1>
-        <p className="text-gray-400">Administra tu catálogo de productos</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t("products_title")}</h1>
+        <p className="text-gray-400">{t("products_subtitle")}</p>
       </div>
 
       {/* Stats Cards */}
@@ -103,51 +106,51 @@ const ProductsContent = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <Card className="bg-gray-700 border-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-300">Total Productos</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-300">{t("total_products_label")}</CardTitle>
               <Package className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{stats?.totalProducts || 0}</div>
-              <p className="text-xs text-blue-400">En el catálogo</p>
+              <p className="text-xs text-blue-400">{t("total_products_sub")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-700 border-green-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-300">Productos Activos</CardTitle>
+              <CardTitle className="text-sm font-medium text-green-300">{t("active_products_label")}</CardTitle>
               <Eye className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
                 {stats?.activeProducts || 0}
               </div>
-              <p className="text-xs text-green-400">Disponibles</p>
+              <p className="text-xs text-green-400">{t("active_products_sub")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-700 border-yellow-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-300">Valor Inventario</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-300">{t("inventory_value_label")}</CardTitle>
               <DollarSign className="h-4 w-4 text-yellow-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
                 ${stats?.totalInventoryValue?.toLocaleString() || '0'}
               </div>
-              <p className="text-xs text-yellow-400">Total en stock</p>
+              <p className="text-xs text-yellow-400">{t("inventory_value_sub")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-700 border-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-red-300">Stock Bajo</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-300">{t("low_stock_label")}</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
                 {stats?.lowStockProducts || 0}
               </div>
-              <p className="text-xs text-red-400">Requieren atención</p>
+              <p className="text-xs text-red-400">{t("low_stock_sub")}</p>
             </CardContent>
           </Card>
         </div>
@@ -160,7 +163,7 @@ const ProductsContent = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar productos..."
+                placeholder={t("product_search_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 bg-gray-800 border-gray-600 text-white"
@@ -172,7 +175,7 @@ const ProductsContent = () => {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white text-sm"
               >
-                <option value="all">Todas las categorías</option>
+                <option value="all">{t("all_categories")}</option>
                 <option value="Electronica">Electrónica</option>
                 <option value="Ropa">Ropa</option>
                 <option value="Hogar">Hogar</option>
@@ -182,17 +185,17 @@ const ProductsContent = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white text-sm"
               >
-                <option value="all">Todos los estados</option>
-                <option value="active">Activo</option>
-                <option value="inactive">Inactivo</option>
-                <option value="draft">Borrador</option>
+                <option value="all">{t("all_statuses")}</option>
+                <option value="active">{t("active")}</option>
+                <option value="inactive">{t("inactive")}</option>
+                <option value="draft">{(t("product_status") as any).draft}</option>
               </select>
               <Button
                 className="bg-purple-700 hover:bg-purple-600"
                 onClick={() => setShowAddModal(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Nuevo Producto
+                {t("new_product_button")}
               </Button>
             </div>
           </div>
@@ -205,26 +208,26 @@ const ProductsContent = () => {
       ) : (
         <Card className="bg-gray-700 border-gray-600">
           <CardHeader>
-            <CardTitle className="text-white">Lista de Productos</CardTitle>
+            <CardTitle className="text-white">{t("products_list_title")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-600">
-                    <th className="text-left p-3 text-gray-300">Producto</th>
-                    <th className="text-left p-3 text-gray-300">Categoría</th>
-                    <th className="text-center p-3 text-gray-300">Precio</th>
-                    <th className="text-center p-3 text-gray-300">Stock</th>
-                    <th className="text-center p-3 text-gray-300">Estado</th>
-                    <th className="text-center p-3 text-gray-300">Acciones</th>
+                    <th className="text-left p-3 text-gray-300">{(t("product_table") as any).product}</th>
+                    <th className="text-left p-3 text-gray-300">{(t("product_table") as any).category}</th>
+                    <th className="text-center p-3 text-gray-300">{(t("product_table") as any).price}</th>
+                    <th className="text-center p-3 text-gray-300">{(t("product_table") as any).stock}</th>
+                    <th className="text-center p-3 text-gray-300">{(t("product_table") as any).status}</th>
+                    <th className="text-center p-3 text-gray-300">{(t("product_table") as any).actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredProducts.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-gray-400">
-                        No se encontraron productos
+                        {t("no_products_found")}
                       </td>
                     </tr>
                   ) : (
@@ -296,7 +299,7 @@ const ProductsContent = () => {
             {pagination && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-600">
                 <div className="text-sm text-gray-400">
-                  Mostrando {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} productos
+                  {(t("pagination") as any).showing} {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} {(t("pagination") as any).of} {pagination.total} {(t("pagination") as any).products}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -306,7 +309,7 @@ const ProductsContent = () => {
                     disabled={currentPage === 1}
                     className="border-gray-600 text-gray-300 hover:bg-gray-700"
                   >
-                    Anterior
+                    {(t("pagination") as any).previous}
                   </Button>
                   <div className="flex gap-1">
                     {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
@@ -330,7 +333,7 @@ const ProductsContent = () => {
                     disabled={currentPage === pagination.totalPages}
                     className="border-gray-600 text-gray-300 hover:bg-gray-700"
                   >
-                    Siguiente
+                    {(t("pagination") as any).next}
                   </Button>
                 </div>
               </div>

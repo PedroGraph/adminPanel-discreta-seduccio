@@ -1,4 +1,4 @@
-
+import { useI18n } from "@/hooks/use-i18n";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RotateCcw, Package, Calendar, User, CreditCard } from "lucide-react";
 import { Return } from "@/types/return";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ReturnDetailModalProps {
   open: boolean;
@@ -18,7 +19,22 @@ interface ReturnDetailModalProps {
 }
 
 export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDetailModalProps) => {
+  const t = useI18n();
+  const { language } = useLanguage();
+  const tr = t("return_detail") as any;
+  const filters = t("returns_filters") as any;
+
   if (!returnItem) return null;
+
+  const getStatusTranslation = (status: string) => {
+    switch (status) {
+      case "Pendiente": return filters.pending;
+      case "Procesando": return filters.processing;
+      case "Aprobado": return filters.approved;
+      case "Rechazado": return filters.rejected;
+      default: return status;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -33,8 +49,14 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
     }
   };
 
-  const getReturnTypeColor = (type: string) => {
-    return type === "Reembolso" ? "border-purple-600 text-purple-400 bg-purple-900/20" : "border-blue-600 text-blue-400 bg-blue-900/20";
+  const getRefundDescription = (status: string) => {
+    switch (status) {
+      case "Aprobado": return tr.refund_approved_desc;
+      case "Pendiente": return tr.refund_pending_desc;
+      case "Procesando": return tr.refund_processing_desc;
+      case "Rechazado": return tr.refund_rejected_desc;
+      default: return "";
+    }
   };
 
   return (
@@ -43,7 +65,7 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
         <DialogHeader>
           <DialogTitle className="text-purple-200 flex items-center gap-2">
             <RotateCcw className="h-5 w-5" />
-            Detalles de la Devolución {returnItem.id}
+            {tr.title} {returnItem.id}
           </DialogTitle>
         </DialogHeader>
 
@@ -54,26 +76,28 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
               <CardHeader className="pb-3">
                 <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Información General
+                  {tr.general_info}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <span className="text-purple-400 text-sm">Estado:</span>
+                  <span className="text-purple-400 text-sm">{tr.status}:</span>
                   <Badge variant="outline" className={`ml-2 ${getStatusColor(returnItem.status)}`}>
-                    {returnItem.status}
+                    {getStatusTranslation(returnItem.status)}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Fecha de solicitud:</span>
-                  <span className="text-purple-100 ml-2">{new Date(returnItem.created_at).toLocaleDateString()}</span>
+                  <span className="text-purple-400 text-sm">{tr.request_date}:</span>
+                  <span className="text-purple-100 ml-2">
+                    {new Date(returnItem.created_at).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US')}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Total productos:</span>
+                  <span className="text-purple-400 text-sm">{tr.total_products}:</span>
                   <span className="text-purple-100 ml-2">{returnItem.return_items.length}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Monto total:</span>
+                  <span className="text-purple-400 text-sm">{tr.total_amount}:</span>
                   <span className="text-purple-100 ml-2 font-semibold">${returnItem.total_refund_amount.toFixed(2)}</span>
                 </div>
               </CardContent>
@@ -83,16 +107,16 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
               <CardHeader className="pb-3">
                 <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Información del Cliente
+                  {tr.customer_info}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <span className="text-purple-400 text-sm">Nombre:</span>
+                  <span className="text-purple-400 text-sm">{tr.customer_name}:</span>
                   <span className="text-purple-100 ml-2">{returnItem.customer}</span>
                 </div>
                 <div>
-                  <span className="text-purple-400 text-sm">Orden original:</span>
+                  <span className="text-purple-400 text-sm">{tr.original_order}:</span>
                   <span className="text-purple-100 ml-2">{returnItem.order_id}</span>
                 </div>
               </CardContent>
@@ -106,7 +130,7 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
             <CardHeader className="pb-3">
               <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Productos a Devolver ({returnItem.return_items.length})
+                {tr.products_list} ({returnItem.return_items.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -116,31 +140,31 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div>
-                          <span className="text-purple-400 text-sm">Producto:</span>
-                          <span className="text-purple-100 ml-2 font-medium">{item.product?.name || 'Producto desconocido'}</span>
+                          <span className="text-purple-400 text-sm">{tr.product}:</span>
+                          <span className="text-purple-100 ml-2 font-medium">{item.product?.name || tr.unknown_product}</span>
                         </div>
                         <div>
-                          <span className="text-purple-400 text-sm">Cantidad a devolver:</span>
+                          <span className="text-purple-400 text-sm">{tr.quantity}:</span>
                           <span className="text-purple-100 ml-2">{item.quantity}</span>
                         </div>
                         <div>
-                          <span className="text-purple-400 text-sm">Precio unitario:</span>
+                          <span className="text-purple-400 text-sm">{tr.unit_price}:</span>
                           <span className="text-purple-100 ml-2">${item.unit_price.toFixed(2)}</span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div>
-                          <span className="text-purple-400 text-sm">Motivo:</span>
+                          <span className="text-purple-400 text-sm">{tr.reason}:</span>
                           <span className="text-purple-100 ml-2">{item.reason}</span>
                         </div>
                         <div>
-                          <span className="text-purple-400 text-sm">Tipo:</span>
+                          <span className="text-purple-400 text-sm">{tr.type}:</span>
                           <Badge variant="outline" className={`ml-2 border-purple-600 text-purple-400 bg-purple-900/20`}>
-                            Reembolso
+                            {filters.refund}
                           </Badge>
                         </div>
                         <div>
-                          <span className="text-purple-400 text-sm">Subtotal:</span>
+                          <span className="text-purple-400 text-sm">{tr.subtotal}:</span>
                           <span className="text-purple-100 ml-2 font-semibold">${item.total_price.toFixed(2)}</span>
                         </div>
                       </div>
@@ -156,21 +180,13 @@ export const ReturnDetailModal = ({ open, onOpenChange, returnItem }: ReturnDeta
             <CardHeader className="pb-3">
               <CardTitle className="text-purple-200 text-sm flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                Proceso de Reembolso
+                {tr.refund_process}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-purple-100 text-sm">
-                {returnItem.status === "Aprobado"
-                  ? "El reembolso será procesado en 3-5 días hábiles al método de pago original."
-                  : returnItem.status === "Pendiente"
-                    ? "La solicitud está siendo revisada por nuestro equipo."
-                    : returnItem.status === "Procesando"
-                      ? "La devolución está siendo procesada."
-                      : "La solicitud de devolución ha sido rechazada."
-                }
+                {getRefundDescription(returnItem.status)}
               </p>
-              {/* Removed Intercambio check as it is not supported in backend yet */}
             </CardContent>
           </Card>
         </div>

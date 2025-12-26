@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useI18n } from "@/hooks/use-i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +23,16 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useReports } from "@/hooks/useReports";
 import { CreateScheduledReportModal } from "@/components/reports/CreateScheduledReportModal";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Reports = () => {
+  const t = useI18n();
+  const { language } = useLanguage();
+  const types = t("reports_types") as any;
+  const date = t("reports_date") as any;
+  const table = t("reports_table") as any;
+  const chart = t("reports_chart") as any;
+
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [reportType, setReportType] = useState("sales");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -65,8 +73,8 @@ export const Reports = () => {
   return (
     <div className="p-6 bg-gray-800 min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Reportes Avanzados</h1>
-        <p className="text-gray-400">Exportación de datos y reportes programados</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t("reports_title")}</h1>
+        <p className="text-gray-400">{t("reports_subtitle")}</p>
       </div>
 
       {/* Export Section */}
@@ -74,27 +82,27 @@ export const Reports = () => {
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Download className="h-5 w-5" />
-            Exportar Datos
+            {t("reports_export_title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
-              <Label className="text-gray-300">Tipo de Reporte</Label>
+              <Label className="text-gray-300">{types.label}</Label>
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
                 className="w-full mt-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white"
               >
-                <option value="sales">Ventas</option>
-                <option value="inventory">Inventario</option>
-                <option value="customers">Clientes</option>
-                <option value="orders">Órdenes</option>
-                <option value="retention">Retención</option>
+                <option value="sales">{types.sales}</option>
+                <option value="inventory">{types.inventory}</option>
+                <option value="customers">{types.customers}</option>
+                <option value="orders">{types.orders}</option>
+                <option value="retention">{types.retention}</option>
               </select>
             </div>
             <div>
-              <Label className="text-gray-300">Fecha Inicio</Label>
+              <Label className="text-gray-300">{date.start}</Label>
               <Input
                 type="date"
                 value={dateRange.start}
@@ -103,7 +111,7 @@ export const Reports = () => {
               />
             </div>
             <div>
-              <Label className="text-gray-300">Fecha Fin</Label>
+              <Label className="text-gray-300">{date.end}</Label>
               <Input
                 type="date"
                 value={dateRange.end}
@@ -118,7 +126,7 @@ export const Reports = () => {
                 disabled={isGenerating}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                {isGenerating ? 'Generando...' : 'Excel'}
+                {isGenerating ? t("reports_generating") : 'Excel'}
               </Button>
               <Button
                 onClick={() => handleExportData('pdf')}
@@ -126,7 +134,7 @@ export const Reports = () => {
                 disabled={isGenerating}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                {isGenerating ? 'Generando...' : 'PDF'}
+                {isGenerating ? t("reports_generating") : 'PDF'}
               </Button>
             </div>
           </div>
@@ -136,7 +144,7 @@ export const Reports = () => {
       {/* Retention Metrics */}
       <Card className="bg-gray-700 border-gray-600 mb-6">
         <CardHeader>
-          <CardTitle className="text-white">Métricas de Retención de Clientes</CardTitle>
+          <CardTitle className="text-white">{t("reports_retention_title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -152,8 +160,8 @@ export const Reports = () => {
                   color: '#F3F4F6'
                 }}
               />
-              <Line type="monotone" dataKey="newCustomers" stroke="#60A5FA" strokeWidth={2} name="Nuevos Clientes" />
-              <Line type="monotone" dataKey="retentionRate" stroke="#F59E0B" strokeWidth={2} name="Tasa de Retención %" />
+              <Line type="monotone" dataKey="newCustomers" stroke="#60A5FA" strokeWidth={2} name={chart.new_customers} />
+              <Line type="monotone" dataKey="retentionRate" stroke="#F59E0B" strokeWidth={2} name={chart.retention_rate} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -164,14 +172,14 @@ export const Reports = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-white flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Reportes Programados
+            {t("reports_scheduled_title") || "Reportes Programados"}
           </CardTitle>
           <Button
             className="bg-purple-700 hover:bg-purple-600 text-white"
             onClick={() => setShowCreateModal(true)}
           >
             <Mail className="h-4 w-4 mr-2" />
-            Nuevo Reporte
+            {t("reports_new_button") || "Nuevo Reporte"}
           </Button>
         </CardHeader>
         <CardContent>
@@ -182,13 +190,13 @@ export const Reports = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-600">
-                    <th className="text-left p-3 text-gray-300">Nombre</th>
-                    <th className="text-center p-3 text-gray-300">Frecuencia</th>
-                    <th className="text-center p-3 text-gray-300">Última Ejecución</th>
-                    <th className="text-center p-3 text-gray-300">Próxima Ejecución</th>
-                    <th className="text-center p-3 text-gray-300">Estado</th>
-                    <th className="text-center p-3 text-gray-300">Formato</th>
-                    <th className="text-center p-3 text-gray-300">Acciones</th>
+                    <th className="text-left p-3 text-gray-300">{table.header_name}</th>
+                    <th className="text-center p-3 text-gray-300">{table.header_frequency}</th>
+                    <th className="text-center p-3 text-gray-300">{table.header_last_run}</th>
+                    <th className="text-center p-3 text-gray-300">{table.header_next_run}</th>
+                    <th className="text-center p-3 text-gray-300">{table.header_status}</th>
+                    <th className="text-center p-3 text-gray-300">{table.header_format}</th>
+                    <th className="text-center p-3 text-gray-300">{table.header_actions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,7 +208,7 @@ export const Reports = () => {
                       <td className="p-3 text-center text-gray-300">{report.nextRun}</td>
                       <td className="p-3 text-center">
                         <Badge className={`text-white ${getStatusColor(report.status)}`}>
-                          {report.status}
+                          {report.status === 'Activo' ? table.status_active : table.status_paused}
                         </Badge>
                       </td>
                       <td className="p-3 text-center text-gray-300">{report.format}</td>
@@ -214,7 +222,7 @@ export const Reports = () => {
                             disabled={isGenerating}
                           >
                             <Play className="h-3 w-3 mr-1" />
-                            Ejecutar
+                            {table.run_button}
                           </Button>
                           <Button
                             size="sm"
@@ -227,7 +235,7 @@ export const Reports = () => {
                             ) : (
                               <Play className="h-3 w-3 mr-1" />
                             )}
-                            {report.status === 'Activo' ? 'Pausar' : 'Activar'}
+                            {report.status === 'Activo' ? table.pause_button : table.resume_button}
                           </Button>
                         </div>
                       </td>

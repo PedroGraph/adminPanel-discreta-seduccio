@@ -1,136 +1,124 @@
 import { useState } from "react";
+import { useI18n } from "@/hooks/use-i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Users, Clock, History } from "lucide-react";
-import { WaitingChats } from "@/components/chat/WaitingChats";
-import { ActiveChat } from "@/components/chat/ActiveChat";
-import { useChatContext } from "@/context/ChatContext";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChatHistory } from "./ChatHistory";
-import { ActiveChatsList } from "@/components/chat/ActiveChatsList";
+import {
+  MessageSquare,
+  Users,
+  Clock,
+  Settings as SettingsIcon,
+  Search,
+  Hash
+} from "lucide-react";
+import { useChatContext } from "@/context/ChatContext";
+import { ChatHistory } from "./ChatHistory"; // Keep ChatHistory import as it's used in the new structure
 
-export const VirtualChat = () => {
+const VirtualChat = () => {
+  const t = useI18n();
+  const tr = t("chat_stats") as any;
   const {
-    waitingChats,
     activeConversations,
-    selectedConversationId,
+    waitingChats,
     isConnected,
-    claimChat,
-    selectChat,
-    sendMessage,
-    endChat,
-    isTyping,
-    sendTyping
   } = useChatContext();
 
-  const selectedConversation = activeConversations.find(c => c.conversation_id === selectedConversationId);
-
   return (
-    <div className="p-6 bg-gray-800 min-h-screen">
-      <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Chat Virtual</h1>
-            <p className="text-gray-400">Gestión de chats en tiempo real con clientes</p>
-          </div>
-          <Badge className={isConnected ? "bg-green-600" : "bg-red-600"}>
-            {isConnected ? "Conectado" : "Desconectado"}
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-purple-100">{t("chat_title")}</h1>
+          <p className="text-purple-400">{t("chat_subtitle")}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="outline"
+            className={`${isConnected ? 'border-green-600 text-green-400' : 'border-red-600 text-red-400'} bg-gray-800`}
+          >
+            <span className={`h-2 w-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+            {isConnected ? t("chat_connected") : t("chat_disconnected")}
           </Badge>
+          <Button variant="outline" size="icon" className="bg-gray-800 border-purple-700 text-purple-400 hover:text-purple-300">
+            <SettingsIcon className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="live" className="w-full">
-        {/* ... Rest of the component header ... */}
-        <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-700">
-          <TabsTrigger value="live" className="data-[state=active]:bg-gray-600 data-[state=active]:text-white text-gray-300">
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Chat en Vivo
-          </TabsTrigger>
-          <TabsTrigger value="history" className="data-[state=active]:bg-gray-600 data-[state=active]:text-white text-gray-300">
-            <History className="w-4 h-4 mr-2" />
-            Historial
-          </TabsTrigger>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gray-700 border-purple-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-purple-300">{tr.active_chats}</CardTitle>
+            <MessageSquare className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-100">{activeConversations.length}</div>
+            <p className="text-xs text-purple-400">{tr.conversations}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-700 border-purple-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-purple-300">{tr.waiting_chats}</CardTitle>
+            <Clock className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-100">{waitingChats.length}</div>
+            <p className="text-xs text-purple-400">{tr.waiting_attention}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-700 border-purple-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-purple-300">{tr.status}</CardTitle>
+            <Hash className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-lg font-bold ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+              {isConnected ? t("chat_connected") : t("chat_disconnected")}
+            </div>
+            <p className="text-xs text-purple-400">{tr.websocket_server}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="live" className="space-y-4">
+        <TabsList className="bg-gray-800 border-purple-700">
+          <TabsTrigger value="live" className="data-[state=active]:bg-purple-700">{t("chat_live_tab")}</TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-purple-700">{t("chat_history_tab")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="live">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gray-700 border-blue-500">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-blue-300">Chats Activos</CardTitle>
-                <MessageCircle className="h-4 w-4 text-blue-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">{activeConversations.length}</div>
-                <p className="text-xs text-blue-400">Conversaciones actuales</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-700 border-yellow-500">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-yellow-300">En Espera</CardTitle>
-                <Users className="h-4 w-4 text-yellow-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">{waitingChats.length}</div>
-                <p className="text-xs text-yellow-400">Esperando atención</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-700 border-green-500">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-green-300">Estado</CardTitle>
-                <Clock className="h-4 w-4 text-green-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">
-                  {isConnected ? "Online" : "Offline"}
+        <TabsContent value="live" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+            {/* Lista de chats */}
+            <Card className="bg-gray-700 border-purple-700 lg:col-span-1 flex flex-col">
+              <div className="p-4 border-b border-purple-700">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder={t("search")}
+                    className="w-full pl-10 bg-gray-800 border-purple-700 text-purple-100 rounded-md focus:ring-2 focus:ring-purple-700 p-2"
+                  />
                 </div>
-                <p className="text-xs text-green-400">Servidor WebSocket</p>
-              </CardContent>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 text-center text-purple-400">
+                  {t("chat_empty")?.select_chat || "Select a chat"}
+                </div>
+              </div>
             </Card>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1 space-y-6">
-              {/* Active Chats List */}
-              <ActiveChatsList
-                activeConversations={activeConversations}
-                selectedConversationId={selectedConversationId}
-                onSelectChat={selectChat}
-              />
-
-              {/* Waiting Chats */}
-              <WaitingChats waitingChats={waitingChats} onClaim={claimChat} />
-            </div>
-
-            <div className="lg:col-span-2">
-              {/* Active Chat Area */}
-              {selectedConversation ? (
-                <ActiveChat
-                  key={selectedConversation.conversation_id}
-                  conversationId={selectedConversation.conversation_id}
-                  customerName={selectedConversation.customer_name}
-                  messages={selectedConversation.messages}
-                  onSendMessage={(msg) => sendMessage(selectedConversation.conversation_id, msg)}
-                  onEndChat={() => endChat(selectedConversation.conversation_id)}
-                  isTyping={isTyping[selectedConversation.conversation_id]}
-                  onTyping={(typing) => sendTyping(selectedConversation.conversation_id, typing)}
-                />
-              ) : (
-                <Card className="bg-gray-700 border-gray-600 h-[500px] flex items-center justify-center">
-                  <CardContent className="text-center">
-                    <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-white text-lg font-medium mb-2">
-                      {activeConversations.length > 0 ? "Selecciona un chat" : "No hay chat activo"}
-                    </h3>
-                    <p className="text-gray-400">
-                      Selecciona una conversación de la lista para gestionarla aquí, o usa el widget flotante.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+            {/* Ventana de chat */}
+            <Card className="bg-gray-700 border-purple-700 lg:col-span-2 flex flex-col items-center justify-center p-8 text-center space-y-4">
+              <div className="h-16 w-16 bg-purple-900/30 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-8 w-8 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-purple-100">{t("chat_empty").no_active_chat}</h3>
+                <p className="text-purple-400 max-w-sm mx-auto mt-2">
+                  {t("chat_empty").description}
+                </p>
+              </div>
+            </Card>
           </div>
         </TabsContent>
 
@@ -138,6 +126,8 @@ export const VirtualChat = () => {
           <ChatHistory embedded={true} />
         </TabsContent>
       </Tabs>
-    </div >
+    </div>
   );
 };
+
+export default VirtualChat;

@@ -21,12 +21,15 @@ interface AddMovementModalProps {
   }) => Promise<boolean>;
 }
 
+import { useI18n } from "@/hooks/use-i18n";
+
 export const AddMovementModal = ({
   isOpen,
   onClose,
   products,
   onCreateMovement,
 }: AddMovementModalProps) => {
+  const t = useI18n();
   const [formData, setFormData] = useState({
     product_id: "",
     movement_type: "",
@@ -67,18 +70,21 @@ export const AddMovementModal = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const form = t("inventory_form") as any;
+  const types = (t("inventory_movements") as any).types;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-gray-700 border-gray-600 text-white">
         <DialogHeader>
-          <DialogTitle>Agregar Movimiento de Inventario</DialogTitle>
+          <DialogTitle>{form.title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="product">Producto</Label>
+            <Label htmlFor="product">{form.product}</Label>
             <Select value={formData.product_id} onValueChange={(value) => handleInputChange("product_id", value)}>
               <SelectTrigger className="bg-gray-800 border-gray-600">
-                <SelectValue placeholder="Seleccionar producto" />
+                <SelectValue placeholder={form.select_product} />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
                 {products.map((product) => (
@@ -91,35 +97,35 @@ export const AddMovementModal = ({
           </div>
 
           <div>
-            <Label htmlFor="movement_type">Tipo de Movimiento</Label>
+            <Label htmlFor="movement_type">{form.type}</Label>
             <Select value={formData.movement_type} onValueChange={(value) => handleInputChange("movement_type", value)}>
               <SelectTrigger className="bg-gray-800 border-gray-600">
-                <SelectValue placeholder="Seleccionar tipo" />
+                <SelectValue placeholder={form.select_type} />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
-                <SelectItem value="entrada">Entrada</SelectItem>
-                <SelectItem value="salida">Salida</SelectItem>
-                <SelectItem value="ajuste">Ajuste</SelectItem>
+                <SelectItem value="entrada">{types.entrada}</SelectItem>
+                <SelectItem value="salida">{types.salida}</SelectItem>
+                <SelectItem value="ajuste">{types.ajuste}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="quantity">Cantidad</Label>
+            <Label htmlFor="quantity">{form.quantity}</Label>
             <Input
               id="quantity"
               type="number"
               value={formData.quantity}
               onChange={(e) => handleInputChange("quantity", e.target.value)}
               className="bg-gray-800 border-gray-600"
-              placeholder="Ingrese la cantidad"
+              placeholder={form.quantity_placeholder}
               min="1"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="cost_per_unit">Costo por Unidad (Opcional)</Label>
+            <Label htmlFor="cost_per_unit">{form.cost_per_unit}</Label>
             <Input
               id="cost_per_unit"
               type="number"
@@ -132,23 +138,23 @@ export const AddMovementModal = ({
           </div>
 
           <div>
-            <Label htmlFor="reason">Motivo</Label>
+            <Label htmlFor="reason">{form.reason}</Label>
             <Textarea
               id="reason"
               value={formData.reason}
               onChange={(e) => handleInputChange("reason", e.target.value)}
               className="bg-gray-800 border-gray-600"
-              placeholder="Describa el motivo del movimiento"
+              placeholder={form.reason_placeholder}
               required
             />
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancelar
+              {form.cancel}
             </Button>
             <Button type="submit" className="flex-1 bg-purple-700 hover:bg-purple-600">
-              Crear Movimiento
+              {form.submit}
             </Button>
           </div>
         </form>

@@ -23,6 +23,8 @@ import { Badge } from "@/components/ui/badge";
 import { useProducts } from "./products/ProductsProvider";
 import { toast } from "sonner";
 
+import { useI18n } from "@/hooks/use-i18n";
+
 interface ProductImage {
   id: string;
   file?: File;
@@ -48,6 +50,7 @@ interface EditProductModalProps {
 }
 
 export const EditProductModal = ({ open, onOpenChange, product }: EditProductModalProps) => {
+  const t = useI18n();
   const [images, setImages] = useState<ProductImage[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -252,28 +255,28 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-700 border-purple-700 text-purple-100">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-purple-100">Editar Producto</DialogTitle>
+          <DialogTitle className="text-2xl text-purple-100">{(t("product_form") as any).edit_title}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Formulario */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-name" className="text-purple-200">Nombre del Producto</Label>
+              <Label htmlFor="edit-name" className="text-purple-200">{(t("product_form") as any).name}</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="bg-gray-800 border-purple-700 text-purple-100"
-                placeholder="Ingresa el nombre del producto"
+                placeholder={(t("product_form") as any).name_placeholder}
               />
             </div>
 
             <div>
-              <Label htmlFor="edit-category" className="text-purple-200">Categoría</Label>
+              <Label htmlFor="edit-category" className="text-purple-200">{(t("product_form") as any).category}</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                 <SelectTrigger className="bg-gray-800 border-purple-700 text-purple-200">
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder={(t("product_form") as any).category_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 text-purple-100 border-purple-700">
                   <SelectItem value="Electrónicos">Electrónicos</SelectItem>
@@ -286,94 +289,94 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="edit-price" className="text-purple-200">Precio</Label>
+                <Label htmlFor="edit-price" className="text-purple-200">{(t("product_form") as any).price}</Label>
                 <Input
                   id="edit-price"
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="0.00"
+                  placeholder={(t("product_form") as any).price_placeholder}
                 />
               </div>
               <div>
-                <Label htmlFor="edit-originalPrice" className="text-purple-200">Precio Original</Label>
+                <Label htmlFor="edit-originalPrice" className="text-purple-200">{(t("product_form") as any).original_price}</Label>
                 <Input
                   id="edit-originalPrice"
                   type="number"
                   value={formData.originalPrice}
                   onChange={(e) => setFormData(prev => ({ ...prev, originalPrice: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="0.00"
+                  placeholder={(t("product_form") as any).original_price_placeholder}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="edit-stock" className="text-purple-200">Stock</Label>
+                <Label htmlFor="edit-stock" className="text-purple-200">{(t("product_form") as any).stock}</Label>
                 <Input
                   id="edit-stock"
                   type="number"
                   value={formData.stock}
                   onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="0"
+                  placeholder={(t("product_form") as any).stock_placeholder}
                 />
               </div>
               <div>
-                <Label htmlFor="edit-sku" className="text-purple-200">SKU</Label>
+                <Label htmlFor="edit-sku" className="text-purple-200">{(t("product_form") as any).sku}</Label>
                 <Input
                   id="edit-sku"
                   value={formData.sku}
                   onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value }))}
                   className="bg-gray-800 border-purple-700 text-purple-100"
-                  placeholder="SKU-001"
+                  placeholder={(t("product_form") as any).sku_placeholder}
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="edit-status" className="text-purple-200">Estado</Label>
+              <Label htmlFor="edit-status" className="text-purple-200">{(t("product_form") as any).status}</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
                 <SelectTrigger className="bg-gray-800 border-purple-700 text-purple-200">
-                  <SelectValue placeholder="Selecciona un estado" />
+                  <SelectValue placeholder={(t("product_form") as any).status_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 text-purple-100 border-purple-700">
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
-                  <SelectItem value="Agotado">Agotado</SelectItem>
+                  <SelectItem value="Activo">{(t("product_status") as any).active}</SelectItem>
+                  <SelectItem value="Inactivo">{(t("product_status") as any).inactive}</SelectItem>
+                  <SelectItem value="Agotado">{(t("product_status") as any).inactive}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="edit-description" className="text-purple-200">Descripción</Label>
+              <Label htmlFor="edit-description" className="text-purple-200">{(t("product_form") as any).description}</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 className="bg-gray-800 border-purple-700 text-purple-100"
-                placeholder="Describe el producto..."
+                placeholder={(t("product_form") as any).description_placeholder}
                 rows={3}
               />
             </div>
 
             <div>
-              <Label htmlFor="edit-tags" className="text-purple-200">Etiquetas</Label>
+              <Label htmlFor="edit-tags" className="text-purple-200">{(t("product_form") as any).tags}</Label>
               <Input
                 id="edit-tags"
                 value={formData.tags}
                 onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                 className="bg-gray-800 border-purple-700 text-purple-100"
-                placeholder="tag1, tag2, tag3"
+                placeholder={(t("product_form") as any).tags_placeholder}
               />
             </div>
           </div>
 
           {/* Sección de imágenes */}
           <div className="space-y-4">
-            <Label className="text-purple-200">Imágenes del Producto</Label>
+            <Label className="text-purple-200">{(t("product_images") as any).title}</Label>
 
             {/* Zona de drag and drop */}
             <div
@@ -387,16 +390,16 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
             >
               <Upload className="h-8 w-8 mx-auto mb-2 text-purple-400" />
               <p className="text-purple-300 mb-2">
-                Arrastra las imágenes aquí o{" "}
+                {(t("product_images") as any).drag_drop}{" "}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="text-purple-400 hover:text-purple-300 underline"
                 >
-                  selecciona archivos
+                  {(t("product_images") as any).select_files}
                 </button>
               </p>
-              <p className="text-sm text-purple-500">Formatos: JPG, PNG, GIF (máx. 5MB cada una)</p>
+              <p className="text-sm text-purple-500">{(t("product_images") as any).formats}</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -410,7 +413,7 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
             {/* Vista previa de imágenes */}
             {images.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-purple-200 font-medium">Imágenes del Producto</h4>
+                <h4 className="text-purple-200 font-medium">{(t("product_images") as any).uploaded}</h4>
                 <div className="grid grid-cols-2 gap-3">
                   {images.map((image) => (
                     <div
@@ -428,7 +431,7 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
                       {image.isMain && (
                         <Badge className="absolute top-1 left-1 bg-purple-700 text-purple-100 text-xs">
                           <Star className="h-3 w-3 mr-1" />
-                          Principal
+                          {(t("product_images") as any).main}
                         </Badge>
                       )}
 
@@ -458,7 +461,7 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
             onClick={handleClose}
             className="border-purple-700 text-purple-400 hover:bg-purple-900"
           >
-            Cancelar
+            {(t("product_form") as any).cancel}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -470,7 +473,7 @@ export const EditProductModal = ({ open, onOpenChange, product }: EditProductMod
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               </>
             ) : (
-              'Guardar Cambios'
+              (t("product_form") as any).save_changes
             )}
           </Button>
         </DialogFooter>
