@@ -111,6 +111,6 @@ export class WebSocketService {
 }
 
 // Singleton instance
-const wsService = new WebSocketService('ws://localhost:4000');
+const wsService = new WebSocketService('wss://adminpanel-discreta-seduccion-chats.onrender.com');
 
 export default wsService;

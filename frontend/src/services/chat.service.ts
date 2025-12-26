@@ -19,7 +19,7 @@ export interface Conversation {
     messages: Message[];
 }
 
-const API_URL = 'http://localhost:4000/api/chat';
+const API_URL = 'https://adminpanel-discreta-seduccion-chats.onrender.com/api/chat';
 
 export const chatService = {
     getConversations: async (): Promise<{ status: boolean; data: Conversation[] }> => {
