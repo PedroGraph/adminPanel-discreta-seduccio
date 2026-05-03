@@ -322,6 +322,12 @@ const translations = {
       confirm: "Eliminar",
       deleting: "Eliminando...",
     },
+    
+    //Login section
+    login_title: "Iniciar Sesión",
+    login_subtitle: "Inicia sesión en tu cuenta",
+    forgot_password: "¿Olvidaste tu contraseña?",
+    price: "Precio",
 
     // Inventory section
     inventory_title: "Gestión de Inventario",

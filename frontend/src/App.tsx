@@ -17,7 +17,7 @@ import { Reviews } from "./pages/Reviews";
 import { Coupons } from "./pages/Coupons";
 import { Shipments } from "./pages/Shipments";
 import { Support } from "./pages/Support";
-import { VirtualChat } from "./pages/VirtualChat";
+import VirtualChat from "./pages/VirtualChat";
 import { ChatHistory } from "./pages/ChatHistory";
 import { ActivityLog } from "./pages/ActivityLog";
 import { EmailTemplates } from "./pages/EmailTemplates";
