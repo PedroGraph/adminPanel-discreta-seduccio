@@ -1,7 +1,7 @@
-import { PrismaClient, Prisma, Category, Status } from '@prisma/client';
+import { Prisma, Category, Status } from '@prisma/client';
+import prisma from '@/lib/prisma.js';
 import logger from '@utils/logger.js';
 
-const prisma = new PrismaClient();
 
 export class CategoryService {
   

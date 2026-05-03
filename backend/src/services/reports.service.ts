@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma.js';
 import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import nodemailer from 'nodemailer';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
-const prisma = new PrismaClient();
 
 export class ReportsService {
     // Get all scheduled reports

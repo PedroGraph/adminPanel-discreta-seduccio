@@ -111,6 +111,10 @@ export class WebSocketService {
 }
 
 // Singleton instance
-const wsService = new WebSocketService('wss://adminpanel-discreta-seduccion-chats.onrender.com');
+const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+if (!wsUrl) {
+  throw new Error('VITE_WEBSOCKET_URL is not defined');
+}
+const wsService = new WebSocketService(wsUrl);
 
 export default wsService;

@@ -9,9 +9,15 @@ import { createServer } from 'http';
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction && !process.env.ALLOWED_ORIGINS) {
+  throw new Error('ALLOWED_ORIGINS is required in production');
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5173'];
 
 app.use(cors({
   origin: allowedOrigins,

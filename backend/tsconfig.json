@@ -40,6 +40,9 @@
       ],
       "@appTypes/*": [
         "src/types/*"
+      ],
+      "@lib/*": [
+        "src/lib/*"
       ]
     }
   },

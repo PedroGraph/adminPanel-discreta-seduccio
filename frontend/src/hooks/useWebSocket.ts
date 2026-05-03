@@ -12,10 +12,6 @@ export function useWebSocket({ clientType, authData, autoConnect = true }: UseWe
     const [messages, setMessages] = useState<any[]>([]);
 
     useEffect(() => {
-        if (autoConnect) {
-            wsService.connect(clientType, authData);
-        }
-
         const handleAuthSuccess = () => {
             setIsConnected(true);
         };
@@ -37,7 +33,14 @@ export function useWebSocket({ clientType, authData, autoConnect = true }: UseWe
             wsService.off('connection:failed', handleConnectionFailed);
             wsService.off('chat:message', handleMessage);
         };
-    }, [clientType, authData, autoConnect]);
+    }, []);
+
+    useEffect(() => {
+        if (autoConnect) {
+            wsService.connect(clientType, authData);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoConnect]);
 
     const sendMessage = useCallback((type: string, payload?: any) => {
         wsService.send({ type, payload });

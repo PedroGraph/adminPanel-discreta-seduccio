@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma.js';
 import { startOfMonth, subMonths, endOfMonth, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-const prisma = new PrismaClient();
 
 export class AnalyticsService {
   async getAnalytics() {

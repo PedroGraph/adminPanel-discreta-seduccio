@@ -1,6 +1,20 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/auth/AuthProvider';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+async function fetchWsToken(): Promise<string | null> {
+    try {
+        const res = await fetch(`${API_URL}/auth/ws-token`, { credentials: 'include' });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.data?.token ?? null;
+    } catch {
+        return null;
+    }
+}
 
 interface WaitingChat {
     conversation_id: string;
@@ -48,6 +62,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const { toast } = useToast();
+    const { user } = useAuth();
     const [waitingChats, setWaitingChats] = useState<WaitingChat[]>([]);
     const [activeConversations, setActiveConversations] = useState<ActiveConversation[]>([]);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -55,16 +70,28 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const [minimizedChatIds, setMinimizedChatIds] = useState<string[]>([]);
     const [isMainMinimized, setIsMainMinimized] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
-    const [adminName] = useState("Admin"); // TODO: Get from auth context
-    const [adminId] = useState(1); // TODO: Get from auth context
     const [isTyping, setIsTyping] = useState<Record<string, boolean>>({});
+
+    const adminId = user?.id ?? 0;
+    const adminName = user?.name ?? '';
+    const [wsToken, setWsToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!user) {
+            setWsToken(null);
+            return;
+        }
+        fetchWsToken().then(setWsToken);
+    }, [user]);
 
     const { isConnected, sendMessage: wsSendMessage, subscribe } = useWebSocket({
         clientType: 'admin',
         authData: {
             user_id: adminId,
             name: adminName,
+            token: wsToken,
         },
+        autoConnect: !!user && !!wsToken,
     });
 
     useEffect(() => {

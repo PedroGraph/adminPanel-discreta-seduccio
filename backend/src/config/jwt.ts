@@ -6,7 +6,15 @@ export interface JwtPayload {
   role: string;
 }
 
-const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key';
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET is required in production');
+  } else {
+    console.warn('WARNING: JWT_SECRET not set. Using insecure default for development only.');
+  }
+}
+
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'dev-only-insecure-secret';
 const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '24h';
 
 export const generateToken = (payload: JwtPayload): string => {

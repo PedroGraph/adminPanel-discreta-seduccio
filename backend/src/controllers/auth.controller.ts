@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import { AuthService } from '@services/auth.service.js';
 import { LogService } from '@services/log.service.js';
 import logger from '@utils/logger.js';
@@ -24,7 +25,7 @@ export class AuthController {
       });
 
    
-      const isProduction = process.env.ENV_PROYECT === 'production';
+      const isProduction = process.env.NODE_ENV === 'production';
       res.cookie('token', result.token, {
         httpOnly: true,
         secure: isProduction,
@@ -61,6 +62,23 @@ export class AuthController {
         throw new AppError('Usuario no autenticado', 401);
       }
       sendSuccess(res, req.user, 'Perfil de usuario');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getWsToken(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new AppError('Usuario no autenticado', 401);
+      }
+      const secret = process.env.JWT_SECRET || 'dev-only-insecure-secret';
+      const wsToken = jwt.sign(
+        { id: req.user.id, email: req.user.email, role: req.user.role },
+        secret,
+        { expiresIn: '5m' }
+      );
+      sendSuccess(res, { token: wsToken }, 'WebSocket token generado');
     } catch (error) {
       next(error);
     }

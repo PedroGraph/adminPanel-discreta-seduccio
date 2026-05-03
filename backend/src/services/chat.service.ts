@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma.js';
 
-const prisma = new PrismaClient();
 
 export class ChatService {
     async getAllConversations(filters?: { status?: string; customerName?: string }) {

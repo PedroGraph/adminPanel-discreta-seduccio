@@ -1,8 +1,8 @@
 import { CreateProductData } from '@interfaces/product.interface.js';
-import { PrismaClient, Prisma, Product, Status, ProductStatus } from '@prisma/client';
+import { Prisma, Product, Status, ProductStatus } from '@prisma/client';
+import prisma from '@/lib/prisma.js';
 import logger from '@utils/logger.js';
 
-const prisma = new PrismaClient();
 
 export class ProductService {
     

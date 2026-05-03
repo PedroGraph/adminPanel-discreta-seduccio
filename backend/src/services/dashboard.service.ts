@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma.js';
 import { startOfMonth, subMonths, endOfMonth, startOfDay, subDays } from 'date-fns';
 
-const prisma = new PrismaClient();
 
 export class DashboardService {
   async getDashboardStats() {

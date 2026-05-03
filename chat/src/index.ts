@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import * as dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import {
     handleCustomerStartChat,
     handleAdminClaimChat,
@@ -158,42 +159,67 @@ wss.on('connection', (ws: WebSocket) => {
 
                 case 'auth:admin':
                     try {
-                        // Admin authentication - persistence
-                        const adminId = message.payload?.user_id;
-                        if (adminId) {
-                            const activeConversations = await dbService.getActiveConversationsByAdmin(adminId);
-                            const conversationIds = activeConversations.map(c => c.id);
-                            
-                            adminClients.set(ws, {
-                                type: 'admin',
-                                userId: adminId,
-                                name: message.payload?.name,
-                                conversationIds: conversationIds,
-                            });
-                            
-                            ws.send(
-                                JSON.stringify({
-                                    type: 'auth:success',
-                                    payload: { 
-                                        client_type: 'admin',
-                                        active_conversations: activeConversations.map(c => ({
-                                            id: c.id,
-                                            customer_name: c.customer_name,
-                                            messages: c.messages.map((msg: any) => ({
-                                                sender_type: msg.sender_type,
-                                                sender_name: msg.sender_name,
-                                                message: msg.message,
-                                                sent_at: msg.sent_at.toISOString(),
-                                            }))
-                                        }))
-                                    },
-                                })
-                            );
-                            
-                            console.log(`Admin ${message.payload?.name} reconnected with ${conversationIds.length} active chats`);
+                        const wsToken = message.payload?.token;
+                        const jwtSecret = process.env.JWT_SECRET;
+
+                        if (!jwtSecret) {
+                            ws.send(JSON.stringify({ type: 'error', payload: { message: 'Server misconfigured' } }));
+                            ws.close();
+                            break;
                         }
+
+                        if (!wsToken) {
+                            ws.send(JSON.stringify({ type: 'error', payload: { message: 'Authentication token required' } }));
+                            ws.close();
+                            break;
+                        }
+
+                        let decoded: any;
+                        try {
+                            decoded = jwt.verify(wsToken, jwtSecret);
+                        } catch {
+                            ws.send(JSON.stringify({ type: 'error', payload: { message: 'Invalid or expired token' } }));
+                            ws.close();
+                            break;
+                        }
+
+                        const adminId = decoded.id;
+                        const adminName = decoded.email;
+
+                        const activeConversations = await dbService.getActiveConversationsByAdmin(adminId);
+                        const conversationIds = activeConversations.map((c: any) => c.id);
+
+                        adminClients.set(ws, {
+                            type: 'admin',
+                            userId: adminId,
+                            name: adminName,
+                            conversationIds: conversationIds,
+                        });
+
+                        ws.send(
+                            JSON.stringify({
+                                type: 'auth:success',
+                                payload: {
+                                    client_type: 'admin',
+                                    active_conversations: activeConversations.map((c: any) => ({
+                                        id: c.id,
+                                        customer_name: c.customer_name,
+                                        messages: c.messages.map((msg: any) => ({
+                                            sender_type: msg.sender_type,
+                                            sender_name: msg.sender_name,
+                                            message: msg.message,
+                                            sent_at: msg.sent_at.toISOString(),
+                                        }))
+                                    }))
+                                },
+                            })
+                        );
+
+                        console.log(`Admin ${adminName} authenticated with ${conversationIds.length} active chats`);
                     } catch (error) {
                         console.error('Error in admin auth:', error);
+                        ws.send(JSON.stringify({ type: 'error', payload: { message: 'Authentication failed' } }));
+                        ws.close();
                     }
                     break;
 
