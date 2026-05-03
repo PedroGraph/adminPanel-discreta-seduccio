@@ -43,3 +43,5 @@ next-env.d.ts
 # For websocket testing
 # TODO: Remove this file
 test-client.html
+
+node_modules/
